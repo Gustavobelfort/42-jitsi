@@ -2,15 +2,31 @@ package config
 
 import (
 	"testing"
+	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestConfigLoad(t *testing.T) {
 
 	expected := Configuration{
-		SlackThatURL:      "localhost:8080",
-		CampusSlug:        "42sp",
-		WarnBefore:        "15m",
-		IntraWebhooksAuth: "scale_team.create:create_secret,scale_team.update:update_secret,scale_team.destroy:destroy_secret",
+		SlackThatURL: "localhost:8080",
+		CampusSlug:   "42sp",
+		WarnBefore:   time.Minute * 15,
+		IntraWebhooksAuth: []Webhook{
+			Webhook{
+				Hook:   "scale_team.create",
+				Secret: "create_secret",
+			},
+			Webhook{
+				Hook:   "scale_team.update",
+				Secret: "update_secret",
+			},
+			Webhook{
+				Hook:   "scale_team.destroy",
+				Secret: "destroy_secret",
+			},
+		},
 		Postgres: Database{
 			Host:     "1",
 			Port:     "2",
@@ -25,9 +41,8 @@ func TestConfigLoad(t *testing.T) {
 	if err != nil {
 		t.Errorf("load failed with error: %v", err)
 	}
-
-	if got != expected {
-		t.Errorf("Got: %v, Expected: %v", got, expected)
+	if !cmp.Equal(got, expected) {
+		t.Errorf("Got: %#v, Expected: %#v", got, expected)
 	}
 }
 

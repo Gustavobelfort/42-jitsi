@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/gustavobelfort/42-jitsi/internal/utils"
 	"github.com/pkg/errors"
@@ -20,11 +21,16 @@ var Conf Configuration
 
 // Configuration is the type that will hold the configuration informations
 type Configuration struct {
-	SlackThatURL      string `mapstructure:"slack-that-url"`
-	CampusSlug        string `mapstructure:"campus-slug"`
-	WarnBefore        string `mapstructure:"warn-before"`
-	IntraWebhooksAuth string `mapstructure:"intra-webhooks-auth"`
+	SlackThatURL      string        `mapstructure:"slack-that-url"`
+	CampusSlug        string        `mapstructure:"campus-slug"`
+	WarnBefore        time.Duration `mapstructure:"warn-before"`
+	IntraWebhooksAuth []Webhook     `mapstructure:"intra-webhooks"`
 	Postgres          Database
+}
+
+type Webhook struct {
+	Hook   string
+	Secret string
 }
 
 // Database is the type that will hold the database informations

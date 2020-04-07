@@ -1,7 +1,13 @@
 slack-that-url: "localhost:8080"
 campus-slug: "42sp" # Used to format room name
 warn-before: 15m # Time in duration format
-intra-webhooks-auth: "scale_team.create:create_secret,scale_team.update:update_secret,scale_team.destroy:destroy_secret" # Comma-separated pair-values of form `model.event:secret`
+intra-webhooks: 
+    - hook: scale_team.create
+      secret: create_secret
+    - hook: scale_team.update
+      secret: update_secret
+    - hook: scale_team.destroy
+      secret: destroy_secret
 postgres:
     host: "1"
     port: "2"
