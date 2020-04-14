@@ -26,6 +26,12 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+	if err := db.AutoMigrate(&userModel{}, &scaleTeamModel{}).Error; err != nil {
+		return err
+	}
+	if err := db.Model(&userModel{}).AddForeignKey("scale_team_id", "scale_teams(id)", "CASCADE", "CASCADE").Error; err != nil {
+		return err
+	}
 	ScaleTeamManager = &scaleTeamManager{db: db}
 	UserManager = &userManager{db: db}
 	return nil
