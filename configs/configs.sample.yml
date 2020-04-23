@@ -1,0 +1,16 @@
+slack-that-url: "localhost:8080"
+campus-slug: "42sp" # Used to format room name
+warn-before: 15m # Time in duration format
+intra-webhooks: 
+    - hook: scale_team.create
+      secret: create_secret
+    - hook: scale_team.update
+      secret: update_secret
+    - hook: scale_team.destroy
+      secret: destroy_secret
+postgres:
+    host: "1"
+    port: "2"
+    database: "3"
+    username: "4"
+    password: "5"
