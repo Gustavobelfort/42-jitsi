@@ -1,16 +1,16 @@
-slack-that-url: "localhost:8080"
-campus-slug: "42sp" # Used to format room name
-warn-before: 15m # Time in duration format
-intra-webhooks: 
-    - hook: scale_team.create
-      secret: create_secret
-    - hook: scale_team.update
-      secret: update_secret
-    - hook: scale_team.destroy
-      secret: destroy_secret
+slack_that:
+  url: "http://localhost:8080"
+  workspace: "42born2code"
+  username: "Evaluation Master"
+email_suffix: "student.42campus.org" # Used to format room name
+warn_before: 15m # Time in duration format
+intra:
+  app_id: intra_app_id
+  app_secret: intra_app_secret
+  webhooks: scale_team.create:create_secret,scale_team.update:update_secret,scale_team.destroy:destroy_secret
 postgres:
-    host: "1"
-    port: "2"
-    database: "3"
-    username: "4"
-    password: "5"
+  host: "1"
+  port: "2"
+  db: "3"
+  user: "4"
+  password: "5"

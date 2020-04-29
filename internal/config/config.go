@@ -1,98 +1,58 @@
 package config
 
 import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"path/filepath"
+	"errors"
+	"reflect"
+	"strings"
 	"time"
-
-	"github.com/gustavobelfort/42-jitsi/internal/utils"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 )
-
-const configFile = "config.yml"
-
-// Conf initializes a global variable
-// where the configurations gathered from the config file will be stored
-var Conf Configuration
 
 // Configuration is the type that will hold the configuration informations
 type Configuration struct {
-	SlackThatURL      string        `mapstructure:"slack-that-url"`
-	CampusSlug        string        `mapstructure:"campus-slug"`
-	WarnBefore        time.Duration `mapstructure:"warn-before"`
-	IntraWebhooksAuth []Webhook     `mapstructure:"intra-webhooks"`
-	Postgres          Database
-}
-
-type Webhook struct {
-	Hook   string
-	Secret string
+	EmailSuffix string          `mapstructure:"email_suffix"`
+	SlackThat   SlackThatConfig `mapstructure:"slack_that"`
+	WarnBefore  time.Duration   `mapstructure:"warn_before"`
+	Intra       Intra
+	Postgres    Database
 }
 
 // Database is the type that will hold the database informations
 type Database struct {
 	Host     string
 	Port     string
-	Database string
-	Username string
+	DB       string
+	User     string
 	Password string
 }
 
-func check() error {
-	fd, err := filepath.Abs(configFile)
-	if err != nil {
-		return err
-	}
-
-	if _, err = ioutil.ReadFile(fd); err != nil {
-		return err
-	}
-
-	return nil
+// Intra is the type that will hold the Intranet configurations
+type Intra struct {
+	AppID     string `mapstructure:"app_id"`
+	AppSecret string `mapstructure:"app_secret"`
+	Webhooks  map[string]string
 }
 
-func load(filename string) (Configuration, error) {
-
-	viper.SetConfigType("yaml")
-
-	fd, err := filepath.Abs(filename)
-	if err != nil {
-		return Conf, err
-	}
-
-	ymlFile, err := ioutil.ReadFile(fd)
-	if err != nil {
-		return Conf, err
-	}
-
-	viper.AutomaticEnv()
-	viper.ReadConfig(bytes.NewBuffer(ymlFile))
-	switch {
-	case err != nil:
-		log.Println(err)
-	default:
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
-
-	err = viper.Unmarshal(&Conf)
-	if err != nil {
-		log.Println(errors.Wrap(err, "unmarshal config file"))
-	}
-
-	log.Println("config (info) config file successfully loaded.")
-	return Conf, nil
-
+// Configurations for the Slackthat Microsservice
+type SlackThatConfig struct {
+	URL       string
+	Workspace string
+	Username  string
 }
 
-// Initiate checks for the config file, and if its its found, try to load it into the program
-func Initiate() {
-	log.Println("config (info) loading config...")
-	if err := check(); err != nil {
-		log.Fatalf("%sconfig (error)%s can't access '%s'. (%v)\n", utils.Red, utils.Reset, configFile, err)
+// stringToMapstringHookFunc will decode a string to a mapstring.
+func stringToMapstringHookFunc(f, t reflect.Type, data interface{}) (interface{}, error) {
+	if f.Kind() != reflect.String || t != reflect.MapOf(reflect.TypeOf(""), reflect.TypeOf("")) {
+		return data, nil
 	}
-	load(configFile)
+
+	mapstring := make(map[string]string)
+	for _, elements := range strings.Split(data.(string), ",") {
+		config := strings.Split(elements, ":")
+		if len(config) != 2 {
+			return nil, errors.New("expected string of format 'key0:value0,key1:value1,...,keyN:valueN'")
+		}
+		mapstring[config[0]] = config[1]
+	}
+
+	return mapstring, nil
 }
