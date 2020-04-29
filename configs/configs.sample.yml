@@ -1,0 +1,16 @@
+slack_that:
+  url: "http://localhost:8080"
+  workspace: "42born2code"
+  username: "Evaluation Master"
+email_suffix: "student.42campus.org" # Used to format room name
+warn_before: 15m # Time in duration format
+intra:
+  app_id: intra_app_id
+  app_secret: intra_app_secret
+  webhooks: scale_team.create:create_secret,scale_team.update:update_secret,scale_team.destroy:destroy_secret
+postgres:
+  host: "1"
+  port: "2"
+  db: "3"
+  user: "4"
+  password: "5"
