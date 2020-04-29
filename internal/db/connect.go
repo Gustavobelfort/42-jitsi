@@ -16,11 +16,11 @@ func Init() error {
 	pgConf := config.Conf.Postgres
 	url := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		pgConf.Username,
+		pgConf.User,
 		pgConf.Password,
 		pgConf.Host,
 		pgConf.Port,
-		pgConf.Database,
+		pgConf.DB,
 	)
 	db, err := gorm.Open("postgres", url)
 	if err != nil {
