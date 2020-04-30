@@ -1,101 +1,86 @@
 package intra
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
-	"path"
-	"strings"
+	"strconv"
 	"time"
 
-	"github.com/gustavobelfort/42-jitsi/internal/config"
+	"github.com/gustavobelfort/42-jitsi/internal/intra/oauth"
 )
 
-// New creates and returns http client to handle exchanges with 42 API
-func New() (Client, error) {
-	parsedURL, err := url.Parse("https://api.intra.42.fr")
+var (
+	baseURL = "https://api.intra.42.fr/"
+)
+
+// intraClient to make request to 42's API.
+type intraClient struct {
+	oauthClient *oauth.Client
+}
+
+// NewClient returns a new client made to make request to 42's API.
+func NewClient(clientID, clientSecret string, httpClient *http.Client) (Client, error) {
+	client, err := oauth.NewClient(baseURL, clientID, clientSecret, httpClient)
 	if err != nil {
 		return nil, err
 	}
 
-	timeout := time.Duration(5 * time.Second)
-	baseClient := http.Client{
-		Timeout: timeout,
-	}
-
-	intraClient := &intraClient{
-		httpClient: &baseClient,
-		baseURL:    parsedURL,
-		Token:      "",
-	}
-
-	return intraClient, nil
-}
-func (client *intraClient) getURL(endpoint string) string {
-	urlCopy := &url.URL{}
-	*urlCopy = *client.baseURL
-
-	urlCopy.Path = path.Join(urlCopy.Path, endpoint)
-	return urlCopy.String()
+	return &intraClient{
+		oauthClient: client,
+	}, nil
 }
 
-func (client *intraClient) request(method, endpoint string, reader io.Reader, v interface{}) error {
-	request, err := http.NewRequest(method, client.getURL(endpoint), reader)
+// Request makes a request to the API through the configured client.
+func (c *intraClient) request(ctx context.Context, method, endpoint string, params oauth.Params, data map[string]interface{}, v interface{}) error {
+	resp, err := c.oauthClient.Request(ctx, method, endpoint, params, data)
 	if err != nil {
 		return err
 	}
-
-	if client.Token != "" {
-		formatBearer := fmt.Sprintf("Bearer %s", client.Token)
-		request.Header.Set("Authorization", formatBearer)
-	}
-
-	resp, err := client.httpClient.Do(request)
-	if err != nil {
-		return err
+	if resp.StatusCode == 429 {
+		retryAfter, err := strconv.Atoi(resp.Header.Get("Retry-After"))
+		if err != nil {
+			// If can't parse "Retry-After", return the response
+			// atoi's error won't be useful.
+			return &HTTPError{Response: resp}
+		}
+		time.Sleep(time.Second * time.Duration(retryAfter))
+		return c.request(ctx, method, endpoint, params, data, v)
 	}
 
 	if err := validateResponse(resp); err != nil {
 		return err
 	}
 
-	decoder := json.NewDecoder(resp.Body)
-	return decoder.Decode(v)
+	return json.NewDecoder(resp.Body).Decode(v)
 }
 
-// GetToken encapsulate getting a valid Token from 42 API
-func (client *intraClient) GetToken() error {
-	values := url.Values{}
-	values.Set("client_id", config.Conf.Intra.AppID)
-	values.Set("client_secret", config.Conf.Intra.AppSecret)
-	values.Set("grant_type", "client_credentials")
-	values.Set("scope", "public projects")
-
-	params := strings.NewReader(values.Encode())
-
-	data := make(map[string]interface{})
-	if err := client.request(http.MethodPost, "/oauth/token", params, &data); err != nil {
-		return err
-	}
-
-	if value, ok := data["access_token"]; ok {
-		client.Token = value.(string)
-	}
-	return nil
-}
-
-func (client *intraClient) GetUserEmail(login string) (string, error) {
+// GetUserEmail returns a user's email with 42's API.
+func (c *intraClient) GetUserEmail(ctx context.Context, login string) (string, error) {
 	endpoint := fmt.Sprintf("/v2/users/%s", login)
-	data := make(map[string]interface{})
 
-	if err := client.request(http.MethodGet, endpoint, nil, &data); err != nil {
+	user := make(map[string]interface{})
+
+	if err := c.request(ctx, http.MethodGet, endpoint, nil, nil, &user); err != nil {
 		return "", err
 	}
 
-	if value, ok := data["email"]; ok {
-		return value.(string), nil
+	return user["email"].(string), nil
+}
+
+// GetTeamMembers returns the members of a team with 42's API.
+func (c *intraClient) GetTeamMembers(ctx context.Context, teamID int) ([]string, error) {
+	endpoint := fmt.Sprintf("/v2/teams/%d/users", teamID)
+
+	users := make([]map[string]interface{}, 0)
+	if err := c.request(ctx, http.MethodGet, endpoint, nil, nil, &users); err != nil {
+		return nil, err
 	}
-	return "", nil
+
+	logins := make([]string, len(users))
+	for i, user := range users {
+		logins[i] = user["login"].(string)
+	}
+	return logins, nil
 }
