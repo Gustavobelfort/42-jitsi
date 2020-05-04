@@ -15,49 +15,37 @@ var (
 	Corrector UserStatus = "corrector"
 )
 
-// ScaleTeamManagerInterface will be a wrapper to manage ScaleTeams in the database.
+// ScaleTeamManager will be a wrapper to manage ScaleTeams in the database.
 //
-// It shall be used by a constant "ScaleTeamManager".
-type ScaleTeamManagerInterface interface {
-	Create(id int, beginAt time.Time, notified bool) (ScaleTeam, error)
-	CreateWithTransaction(tx *gorm.DB, id int, beginAt time.Time, notified bool) (ScaleTeam, error)
+// It shall be used by a constant "GlobalScaleTeamManager".
+type ScaleTeamManager interface {
+	Create(tx *gorm.DB, id int, beginAt time.Time, notified bool) (ScaleTeam, error)
+	Update(tx *gorm.DB, scaleTeam ScaleTeam) error
+	Delete(tx *gorm.DB, scaleTeam ScaleTeam) error
+	Get(tx *gorm.DB, options ...GetOption) ([]ScaleTeam, error)
 
-	Update(scaleTeam ScaleTeam) error
-	UpdateWithTransaction(tx *gorm.DB, scaleTeam ScaleTeam) error
-
-	Delete(scaleTeam ScaleTeam) error
-	DeleteWithTransaction(tx *gorm.DB, scaleTeam ScaleTeam) error
-
-	Get(options ...GetOption) ([]ScaleTeam, error)
-	GetWithTransaction(tx *gorm.DB, options ...GetOption) ([]ScaleTeam, error)
+	DB() *gorm.DB
 }
 
-// UserManagerInterface will be a wrapper to manage Users in the database.
+// UserManager will be a wrapper to manage Users in the database.
 //
-// It shall be used by a constant "UserManager".
-type UserManagerInterface interface {
-	Create(scaleTeamID int, login string, status UserStatus) (User, error)
-	CreateWithTransaction(tx *gorm.DB, scaleTeamID int, login string, status UserStatus) (User, error)
+// It shall be used by a constant "GlobalUserManager".
+type UserManager interface {
+	Create(tx *gorm.DB, scaleTeamID int, login string, status UserStatus) (User, error)
+	Update(tx *gorm.DB, user User) error
+	Delete(tx *gorm.DB, user User) error
+	Get(tx *gorm.DB, options ...GetOption) ([]User, error)
 
-	Update(scaleTeam User) error
-	UpdateWithTransaction(tx *gorm.DB, user User) error
-
-	Delete(user User) error
-	DeleteWithTransaction(tx *gorm.DB, user User) error
-
-	Get(options ...GetOption) ([]User, error)
-	GetWithTransaction(tx *gorm.DB, options ...GetOption) ([]User, error)
+	DB() *gorm.DB
 }
 
 // ManagedModel is a base interface for managed data models.
 type ManagedModel interface {
 	// Delete the data inheriting this model.
-	Delete() error
-	DeleteWithTransaction(tx *gorm.DB) error
+	Delete(tx *gorm.DB) error
 
 	// Save the data inheriting this model.
-	Save() error
-	SaveWithTransaction(tx *gorm.DB) error
+	Save(tx *gorm.DB) error
 }
 
 // ScaleTeam and manages wraps the scale_teams records.
@@ -66,7 +54,7 @@ type ScaleTeam interface {
 	GetBeginAt() time.Time
 	GetNotified() bool
 
-	GetUsers(...GetOption) ([]User, error)
+	Get(tx *gorm.DB, options ...GetOption) ([]User, error)
 
 	SetID(int)
 	SetBeginAt(time.Time)

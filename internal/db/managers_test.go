@@ -35,9 +35,9 @@ func (s *ManagerSuite) SetupSuite() {
 	)
 
 	// You can't run the tests properly if those interfaces are not implemented.
-	s.Require().Implements((*ScaleTeamManagerInterface)(nil), &scaleTeamManager{})
+	s.Require().Implements((*ScaleTeamManager)(nil), &scaleTeamManager{})
 	s.Require().Implements((*ScaleTeam)(nil), &scaleTeamModel{})
-	s.Require().Implements((*UserManagerInterface)(nil), &userManager{})
+	s.Require().Implements((*UserManager)(nil), &userManager{})
 	s.Require().Implements((*User)(nil), &userModel{})
 
 	db, s.mock, err = sqlmock.New()
@@ -71,7 +71,7 @@ func (s *ManagerSuite) Test00_CreateScaleTeam() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(expectedID))
 	s.mock.ExpectCommit()
 
-	scaleTeam, err := s.scaleTeamManager.Create(expectedID, expectedBeginAt, expectedNotified)
+	scaleTeam, err := s.scaleTeamManager.Create(s.db, expectedID, expectedBeginAt, expectedNotified)
 	s.Require().NoError(err)
 	s.Require().NotNil(scaleTeam)
 
@@ -94,7 +94,7 @@ func (s *ManagerSuite) Test01_SelectScaleTeams() {
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}).AddRow(expectedID, expectedBeginAt, expectedNotified),
 		)
 
-	scaleTeams, err := s.scaleTeamManager.Get()
+	scaleTeams, err := s.scaleTeamManager.Get(s.db)
 	s.Require().NoError(err)
 	s.Require().NotNil(scaleTeams)
 	s.Require().Len(scaleTeams, 1)
@@ -115,7 +115,7 @@ func (s *ManagerSuite) Test02_SelectScaleTeamsWithOptions_0() {
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}),
 		)
 
-	scaleTeams, err := s.scaleTeamManager.Get(ScaleTeamIDOption(expectedID), ScaleTeamBeginAtAfterOption(expectedBeginAt), ScaleTeamNotifiedOption(expectedNotified))
+	scaleTeams, err := s.scaleTeamManager.Get(s.db, ScaleTeamIDOption(expectedID), ScaleTeamBeginAtAfterOption(expectedBeginAt), ScaleTeamNotifiedOption(expectedNotified))
 	s.Require().NoError(err)
 	s.Require().NotNil(scaleTeams)
 	s.Require().Len(scaleTeams, 0)
@@ -134,7 +134,7 @@ func (s *ManagerSuite) Test03_SelectScaleTeamsWithOptions_1() {
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}),
 		)
 
-	scaleTeams, err := s.scaleTeamManager.Get(ScaleTeamIDOption(expectedID), ScaleTeamBeginAtBeforeOption(expectedBeginAt), ScaleTeamNotifiedOption(expectedNotified))
+	scaleTeams, err := s.scaleTeamManager.Get(s.db, ScaleTeamIDOption(expectedID), ScaleTeamBeginAtBeforeOption(expectedBeginAt), ScaleTeamNotifiedOption(expectedNotified))
 	s.Require().NoError(err)
 	s.Require().NotNil(scaleTeams)
 	s.Require().Len(scaleTeams, 0)
@@ -153,7 +153,7 @@ func (s *ManagerSuite) Test04_SelectScaleTeamsWithOptions_2() {
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}),
 		)
 
-	scaleTeams, err := s.scaleTeamManager.Get(ScaleTeamIDOption(expectedID), ScaleTeamBeginAtInOption(expectedDuration), ScaleTeamNotifiedOption(expectedNotified))
+	scaleTeams, err := s.scaleTeamManager.Get(s.db, ScaleTeamIDOption(expectedID), ScaleTeamBeginAtInOption(expectedDuration), ScaleTeamNotifiedOption(expectedNotified))
 	s.Require().NoError(err)
 	s.Require().NotNil(scaleTeams)
 	s.Require().Len(scaleTeams, 0)
@@ -179,7 +179,7 @@ func (s *ManagerSuite) Test06_CreateUserCorrector() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	s.mock.ExpectCommit()
 
-	user, err := s.userManager.Create(expectedID, expectedLogin, expectedStatus)
+	user, err := s.userManager.Create(s.db, expectedID, expectedLogin, expectedStatus)
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
 
@@ -201,7 +201,7 @@ func (s *ManagerSuite) Test07_CreateUserCorrected() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
 	s.mock.ExpectCommit()
 
-	user, err := s.userManager.Create(expectedID, expectedLogin, expectedStatus)
+	user, err := s.userManager.Create(s.db, expectedID, expectedLogin, expectedStatus)
 	s.Require().NoError(err)
 	s.Require().NotNil(user)
 
@@ -216,7 +216,7 @@ func (s *ManagerSuite) Test08_SelectUsers() {
 				AddRow(s.corrected.ID, s.corrected.ScaleTeamID, s.corrected.Login, s.corrected.Status),
 		)
 
-	users, err := s.userManager.Get()
+	users, err := s.userManager.Get(s.db)
 	s.Require().NoError(err)
 	s.Require().NotNil(users)
 	s.Require().Len(users, 2)
@@ -230,7 +230,7 @@ func (s *ManagerSuite) Test09_SelectUsersWithOptions_0() {
 				AddRow(s.corrector.ID, s.corrector.ScaleTeamID, s.corrector.Login, s.corrector.Status),
 		)
 
-	users, err := s.userManager.Get(UserStatusOption(s.corrector.Status))
+	users, err := s.userManager.Get(s.db, UserStatusOption(s.corrector.Status))
 	s.Require().NoError(err)
 	s.Require().NotNil(users)
 	s.Require().Len(users, 1)
@@ -244,7 +244,7 @@ func (s *ManagerSuite) Test10_SelectUsersWithOptions_1() {
 				AddRow(s.corrected.ID, s.corrected.ScaleTeamID, s.corrected.Login, s.corrected.Status),
 		)
 
-	users, err := s.userManager.Get(UserLoginOption(s.corrected.Login))
+	users, err := s.userManager.Get(s.db, UserLoginOption(s.corrected.Login))
 	s.Require().NoError(err)
 	s.Require().NotNil(users)
 	s.Require().Len(users, 1)
@@ -259,7 +259,7 @@ func (s *ManagerSuite) Test11_SelectUsersWithOptions_2() {
 				AddRow(s.corrected.ID, s.corrected.ScaleTeamID, s.corrected.Login, s.corrected.Status),
 		)
 
-	users, err := s.userManager.Get(UserScaleTeamOption(s.scaleTeam.ID))
+	users, err := s.userManager.Get(s.db, UserScaleTeamOption(s.scaleTeam.ID))
 	s.Require().NoError(err)
 	s.Require().NotNil(users)
 	s.Require().Len(users, 2)
@@ -273,7 +273,7 @@ func (s *ManagerSuite) Test12_SelectUsersWithOptions_3() {
 				AddRow(s.corrector.ID, s.corrector.ScaleTeamID, s.corrector.Login, s.corrector.Status),
 		)
 
-	users, err := s.userManager.Get(UserIDOption(s.corrector.ID))
+	users, err := s.userManager.Get(s.db, UserIDOption(s.corrector.ID))
 	s.Require().NoError(err)
 	s.Require().NotNil(users)
 	s.Require().Len(users, 1)
@@ -295,27 +295,27 @@ func (s *ManagerSuite) Test15_DeleteScaleTeam() {
 }
 
 func (s *ManagerSuite) Test16_ScaleTeamErrorCases() {
-	scaleTeam, err := s.scaleTeamManager.Create(1, time.Now(), false)
+	scaleTeam, err := s.scaleTeamManager.Create(s.db, 1, time.Now(), false)
 	s.Error(err)
 	s.Nil(scaleTeam)
 
-	scaleTeams, err := s.scaleTeamManager.Get()
+	scaleTeams, err := s.scaleTeamManager.Get(s.db)
 	s.Error(err)
 	s.Nil(scaleTeams)
 
-	s.Error(s.scaleTeamManager.Update(s.scaleTeam))
-	s.Error(s.scaleTeamManager.Delete(s.scaleTeam))
+	s.Error(s.scaleTeamManager.Update(s.db, s.scaleTeam))
+	s.Error(s.scaleTeamManager.Delete(s.db, s.scaleTeam))
 }
 
 func (s *ManagerSuite) Test17_UserErrorCases() {
-	user, err := s.userManager.Create(1, "zlogin", Corrected)
+	user, err := s.userManager.Create(s.db, 1, "zlogin", Corrected)
 	s.Error(err)
 	s.Nil(user)
 
-	users, err := s.userManager.Get()
+	users, err := s.userManager.Get(s.db)
 	s.Error(err)
 	s.Nil(users)
 
-	s.Error(s.userManager.Update(s.corrected))
-	s.Error(s.userManager.Delete(s.corrector))
+	s.Error(s.userManager.Update(s.db, s.corrected))
+	s.Error(s.userManager.Delete(s.db, s.corrector))
 }

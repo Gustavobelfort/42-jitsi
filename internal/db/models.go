@@ -12,8 +12,8 @@ type scaleTeamModel struct {
 	Notified bool        `gorm:"default:false"`
 	Users    []userModel `gorm:"foreignkey:ScaleTeamID"`
 
-	userManager      UserManagerInterface      `gorm:"-"`
-	scaleTeamManager ScaleTeamManagerInterface `gorm:"-"`
+	userManager      UserManager      `gorm:"-"`
+	scaleTeamManager ScaleTeamManager `gorm:"-"`
 }
 
 func (scaleTeamModel) TableName() string {
@@ -32,14 +32,9 @@ func (scaleTeam *scaleTeamModel) GetNotified() bool {
 	return scaleTeam.Notified
 }
 
-func (scaleTeam *scaleTeamModel) GetUsersWithTransaction(tx *gorm.DB, options ...GetOption) ([]User, error) {
+func (scaleTeam *scaleTeamModel) Get(tx *gorm.DB, options ...GetOption) ([]User, error) {
 	options = append(options, UserScaleTeamOption(scaleTeam.ID))
-	return UserManager.GetWithTransaction(tx, options...)
-}
-
-func (scaleTeam *scaleTeamModel) GetUsers(options ...GetOption) ([]User, error) {
-	options = append(options, UserScaleTeamOption(scaleTeam.ID))
-	return UserManager.Get(options...)
+	return GlobalUserManager.Get(tx, options...)
 }
 
 func (scaleTeam *scaleTeamModel) SetID(id int) {
@@ -54,20 +49,12 @@ func (scaleTeam *scaleTeamModel) SetNotified(notified bool) {
 	scaleTeam.Notified = notified
 }
 
-func (scaleTeam *scaleTeamModel) SaveWithTransaction(tx *gorm.DB) error {
-	return scaleTeam.scaleTeamManager.UpdateWithTransaction(tx, scaleTeam)
+func (scaleTeam *scaleTeamModel) Save(tx *gorm.DB) error {
+	return scaleTeam.scaleTeamManager.Update(tx, scaleTeam)
 }
 
-func (scaleTeam *scaleTeamModel) Save() error {
-	return scaleTeam.scaleTeamManager.Update(scaleTeam)
-}
-
-func (scaleTeam *scaleTeamModel) DeleteWithTransaction(tx *gorm.DB) error {
-	return scaleTeam.scaleTeamManager.DeleteWithTransaction(tx, scaleTeam)
-}
-
-func (scaleTeam *scaleTeamModel) Delete() error {
-	return scaleTeam.scaleTeamManager.Delete(scaleTeam)
+func (scaleTeam *scaleTeamModel) Delete(tx *gorm.DB) error {
+	return scaleTeam.scaleTeamManager.Delete(tx, scaleTeam)
 }
 
 type userModel struct {
@@ -76,8 +63,8 @@ type userModel struct {
 	Login       string     `gorm:"varchar(32)"`
 	Status      UserStatus `gorm:"varchar(32)"`
 
-	userManager      UserManagerInterface      `gorm:"-"`
-	scaleTeamManager ScaleTeamManagerInterface `gorm:"-"`
+	userManager      UserManager      `gorm:"-"`
+	scaleTeamManager ScaleTeamManager `gorm:"-"`
 }
 
 func (userModel) TableName() string {
@@ -112,18 +99,10 @@ func (user *userModel) SetStatus(status UserStatus) {
 	user.Status = status
 }
 
-func (user *userModel) SaveWithTransaction(tx *gorm.DB) error {
-	return user.userManager.UpdateWithTransaction(tx, user)
+func (user *userModel) Save(tx *gorm.DB) error {
+	return user.userManager.Update(tx, user)
 }
 
-func (user *userModel) Save() error {
-	return user.userManager.Update(user)
-}
-
-func (user *userModel) DeleteWithTransaction(tx *gorm.DB) error {
-	return user.userManager.DeleteWithTransaction(tx, user)
-}
-
-func (user *userModel) Delete() error {
-	return user.userManager.Delete(user)
+func (user *userModel) Delete(tx *gorm.DB) error {
+	return user.userManager.Delete(tx, user)
 }
