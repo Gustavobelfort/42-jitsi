@@ -32,12 +32,14 @@ func Init() error {
 	if err := db.Model(&userModel{}).AddForeignKey("scale_team_id", "scale_teams(id)", "CASCADE", "CASCADE").Error; err != nil {
 		return err
 	}
-	ScaleTeamManager = &scaleTeamManager{db: db}
-	UserManager = &userManager{db: db}
+	GlobalScaleTeamManager = NewScaleTeamManager(db)
+	GlobalUserManager = NewUserManager(db)
+	GlobalDB = db
 	return nil
 }
 
 var (
-	ScaleTeamManager ScaleTeamManagerInterface = nil
-	UserManager      UserManagerInterface      = nil
+	GlobalScaleTeamManager ScaleTeamManager = nil
+	GlobalUserManager      UserManager      = nil
+	GlobalDB               *gorm.DB         = nil
 )

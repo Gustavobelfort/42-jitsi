@@ -14,7 +14,17 @@ type scaleTeamManager struct {
 	db *gorm.DB
 }
 
-func (stManager *scaleTeamManager) CreateWithTransaction(tx *gorm.DB, id int, beginAt time.Time, notified bool) (ScaleTeam, error) {
+// NewScaleTeamManager returns a new manager with the passed GlobalDB object.
+func NewScaleTeamManager(db *gorm.DB) ScaleTeamManager {
+	return &scaleTeamManager{db: db}
+}
+
+// Returns the underlying database object.
+func (stManager *scaleTeamManager) DB() *gorm.DB {
+	return stManager.db
+}
+
+func (stManager *scaleTeamManager) Create(tx *gorm.DB, id int, beginAt time.Time, notified bool) (ScaleTeam, error) {
 	scaleTeam := &scaleTeamModel{
 		ID:       id,
 		BeginAt:  beginAt,
@@ -30,43 +40,15 @@ func (stManager *scaleTeamManager) CreateWithTransaction(tx *gorm.DB, id int, be
 	return scaleTeam, nil
 }
 
-func (stManager *scaleTeamManager) Create(id int, beginAt time.Time, notified bool) (ScaleTeam, error) {
-	tx := stManager.db.Begin()
-	defer tx.RollbackUnlessCommitted()
-	scaleTeam, err := stManager.CreateWithTransaction(tx, id, beginAt, notified)
-	if err != nil {
-		return nil, err
-	}
-	return scaleTeam, tx.Commit().Error
-}
-
-func (stManager *scaleTeamManager) UpdateWithTransaction(tx *gorm.DB, scaleTeam ScaleTeam) error {
+func (stManager *scaleTeamManager) Update(tx *gorm.DB, scaleTeam ScaleTeam) error {
 	return tx.Save(scaleTeam).Error
 }
 
-func (stManager *scaleTeamManager) Update(scaleTeam ScaleTeam) error {
-	tx := stManager.db.Begin()
-	defer tx.RollbackUnlessCommitted()
-	if err := stManager.UpdateWithTransaction(tx, scaleTeam); err != nil {
-		return err
-	}
-	return tx.Commit().Error
-}
-
-func (stManager *scaleTeamManager) DeleteWithTransaction(tx *gorm.DB, scaleTeam ScaleTeam) error {
+func (stManager *scaleTeamManager) Delete(tx *gorm.DB, scaleTeam ScaleTeam) error {
 	return tx.Delete(scaleTeam).Error
 }
 
-func (stManager *scaleTeamManager) Delete(scaleTeam ScaleTeam) error {
-	tx := stManager.db.Begin()
-	defer tx.RollbackUnlessCommitted()
-	if err := stManager.DeleteWithTransaction(tx, scaleTeam); err != nil {
-		return err
-	}
-	return stManager.db.Delete(scaleTeam).Error
-}
-
-func (stManager *scaleTeamManager) GetWithTransaction(tx *gorm.DB, options ...GetOption) ([]ScaleTeam, error) {
+func (stManager *scaleTeamManager) Get(tx *gorm.DB, options ...GetOption) ([]ScaleTeam, error) {
 	for _, opt := range options {
 		tx = opt(tx)
 	}
@@ -86,10 +68,6 @@ func (stManager *scaleTeamManager) GetWithTransaction(tx *gorm.DB, options ...Ge
 
 }
 
-func (stManager *scaleTeamManager) Get(options ...GetOption) ([]ScaleTeam, error) {
-	return stManager.GetWithTransaction(stManager.db, options...)
-}
-
 /*
  * Users Manager
  */
@@ -98,7 +76,17 @@ type userManager struct {
 	db *gorm.DB
 }
 
-func (uManager *userManager) CreateWithTransaction(tx *gorm.DB, scaleTeamID int, login string, status UserStatus) (User, error) {
+// NewUserManager returns a new manager with the passed GlobalDB object.
+func NewUserManager(db *gorm.DB) UserManager {
+	return &userManager{db: db}
+}
+
+// Returns the underlying database object.
+func (uManager *userManager) DB() *gorm.DB {
+	return uManager.db
+}
+
+func (uManager *userManager) Create(tx *gorm.DB, scaleTeamID int, login string, status UserStatus) (User, error) {
 	user := &userModel{
 		ScaleTeamID: scaleTeamID,
 		Login:       login,
@@ -107,46 +95,21 @@ func (uManager *userManager) CreateWithTransaction(tx *gorm.DB, scaleTeamID int,
 		scaleTeamManager: &scaleTeamManager{db: uManager.db},
 		userManager:      uManager,
 	}
-	return user, tx.Create(user).Error
-}
-
-func (uManager *userManager) Create(scaleTeamID int, login string, status UserStatus) (User, error) {
-	tx := uManager.db.Begin()
-	defer tx.RollbackUnlessCommitted()
-	user, err := uManager.CreateWithTransaction(tx, scaleTeamID, login, status)
-	if err != nil {
+	if err := tx.Create(user).Error; err != nil {
 		return nil, err
 	}
-	return user, tx.Commit().Error
+	return user, nil
 }
 
-func (uManager *userManager) UpdateWithTransaction(tx *gorm.DB, user User) error {
+func (uManager *userManager) Update(tx *gorm.DB, user User) error {
 	return tx.Save(user).Error
 }
 
-func (uManager *userManager) Update(user User) error {
-	tx := uManager.db.Begin()
-	defer tx.RollbackUnlessCommitted()
-	if err := uManager.UpdateWithTransaction(tx, user); err != nil {
-		return err
-	}
-	return tx.Commit().Error
-}
-
-func (uManager *userManager) DeleteWithTransaction(tx *gorm.DB, user User) error {
+func (uManager *userManager) Delete(tx *gorm.DB, user User) error {
 	return tx.Delete(user).Error
 }
 
-func (uManager *userManager) Delete(user User) error {
-	tx := uManager.db.Begin()
-	defer tx.RollbackUnlessCommitted()
-	if err := uManager.DeleteWithTransaction(tx, user); err != nil {
-		return err
-	}
-	return tx.Commit().Error
-}
-
-func (uManager *userManager) GetWithTransaction(tx *gorm.DB, options ...GetOption) ([]User, error) {
+func (uManager *userManager) Get(tx *gorm.DB, options ...GetOption) ([]User, error) {
 	for _, opt := range options {
 		tx = opt(tx)
 	}
@@ -163,8 +126,4 @@ func (uManager *userManager) GetWithTransaction(tx *gorm.DB, options ...GetOptio
 		returned[i] = &users[i]
 	}
 	return returned, nil
-}
-
-func (uManager *userManager) Get(options ...GetOption) ([]User, error) {
-	return uManager.GetWithTransaction(uManager.db, options...)
 }
