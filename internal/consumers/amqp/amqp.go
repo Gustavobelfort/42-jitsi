@@ -94,6 +94,7 @@ func (c *AMQP) Start() error {
 		return err
 	}
 	close(c.starting)
+	logging.ContextLog(c.ctx, logrus.StandardLogger()).Info("starting consuming")
 	return c.consume(deliveries, c.stopping)
 }
 
@@ -106,6 +107,7 @@ func (c *AMQP) Stop() error {
 		return NotStartedError
 	}
 
+	logging.ContextLog(c.ctx, logrus.StandardLogger()).WithField("timeout", time.Second*20).Info("shutting down consumer")
 	c.cancel()
 	ticker := time.NewTicker(time.Second * 20)
 	defer ticker.Stop()

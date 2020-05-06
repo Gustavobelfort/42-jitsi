@@ -35,6 +35,13 @@ func setDefaults() {
 
 	viper.SetDefault("slack_that.url", "http://localhost:8080")
 	viper.SetDefault("slack_that.username", "Evaluation Master")
+
+	viper.SetDefault("rabbitmq.host", "localhost")
+	viper.SetDefault("rabbitmq.port", "5672")
+	viper.SetDefault("rabbitmq.vhost", "")
+	viper.SetDefault("rabbitmq.user", "guest")
+	viper.SetDefault("rabbitmq.password", "guest")
+	viper.SetDefault("rabbitmq.queue", "webhooks_intra_42jitsi")
 }
 
 func bindEnv() {

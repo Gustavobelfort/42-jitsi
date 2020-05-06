@@ -73,12 +73,13 @@ func (c *AMQP) consume(deliveries <-chan amqp.Delivery, stopping chan struct{}) 
 			}
 			ctx := messageContext(c.ctx, msg)
 			ctxlogger := logging.ContextLog(ctx, logrus.StandardLogger())
-
+			ctxlogger.Info("received message")
 			if err := c.treatMessage(ctx, msg); err != nil {
 				logging.LogError(ctxlogger, err, "while treating the message")
 				logging.LogError(ctxlogger, handleError(msg, err), "while rejecting the message")
 				break
 			}
+			ctxlogger.Info("acknowledging message")
 			logging.LogError(ctxlogger, msg.Ack(false), "while acknowledging the message")
 		case <-c.ctx.Done():
 			err = ConsumerStoppedError

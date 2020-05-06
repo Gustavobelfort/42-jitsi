@@ -88,6 +88,14 @@ func TestInitiate(t *testing.T) {
 				User:     "postgres",
 				Password: "changeme",
 			},
+			RabbitMQ: RabbitMQ{
+				Host:     "localhost",
+				Port:     "5672",
+				VHost:    "",
+				User:     "guest",
+				Password: "guest",
+				Queue:    "webhooks_intra_42jitsi",
+			},
 		}
 
 		assert.NoError(t, Initiate())
@@ -129,10 +137,30 @@ func TestInitiate(t *testing.T) {
 				User:     "4",
 				Password: "5",
 			},
+			RabbitMQ: RabbitMQ{
+				Host:     "localhost",
+				Port:     "5672",
+				VHost:    "",
+				User:     "guest",
+				Password: "guest",
+				Queue:    "webhooks_intra_42jitsi",
+			},
 		}
 
 		assert.NoError(t, Initiate())
 		fmt.Println(viper.GetString("postgres.password"))
 		assert.Equal(t, expected, Conf)
 	})
+}
+
+func TestRabbitMQ_URL(t *testing.T) {
+	rabbitmq := RabbitMQ{
+		Host:     "localhost",
+		Port:     "5672",
+		VHost:    "vhost",
+		User:     "user",
+		Password: "password",
+	}
+	expected := "amqp://user:password@localhost:5672/vhost"
+	assert.Equal(t, expected, rabbitmq.URL())
 }
