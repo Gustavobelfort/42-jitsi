@@ -72,6 +72,8 @@ func TestInitiate(t *testing.T) {
 			},
 			EmailSuffix: "student.42campus.org",
 			WarnBefore:  time.Minute * 15,
+			HTTPAddr:    "0.0.0.0:5000",
+			Timeout:     time.Second * 10,
 			Intra: Intra{
 				AppID:     "intra_app_id",
 				AppSecret: "intra_app_secret",
@@ -109,6 +111,8 @@ func TestInitiate(t *testing.T) {
 			},
 			EmailSuffix: "student.42campus.org",
 			WarnBefore:  time.Minute * 15,
+			HTTPAddr:    "0.0.0.0:5000",
+			Timeout:     time.Second * 10,
 			Intra: Intra{
 				AppID:     "intra_app_id",
 				AppSecret: "intra_app_secret",

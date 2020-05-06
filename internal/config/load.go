@@ -24,6 +24,10 @@ func setDefaults() {
 
 	viper.SetDefault("warn_before", time.Minute*15)
 
+	viper.SetDefault("http_addr", "0.0.0.0:5000")
+
+	viper.SetDefault("timeout", time.Second*10)
+
 	viper.SetDefault("postgres.host", "localhost")
 	viper.SetDefault("postgres.port", 5432)
 	viper.SetDefault("postgres.db", "postgres")

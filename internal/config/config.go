@@ -14,6 +14,10 @@ type Configuration struct {
 	WarnBefore  time.Duration   `mapstructure:"warn_before"`
 	Intra       Intra
 	Postgres    Database
+
+	Timeout time.Duration
+
+	HTTPAddr string `mapstructure:"http_addr"`
 }
 
 // Database is the type that will hold the database informations

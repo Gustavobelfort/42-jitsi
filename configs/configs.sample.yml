@@ -4,6 +4,8 @@ slack_that:
   username: "Evaluation Master"
 email_suffix: "student.42campus.org" # Used to format room name
 warn_before: 15m # Time in duration format
+http_addr: 0.0.0.0:5000
+timeout: 10s
 intra:
   app_id: intra_app_id
   app_secret: intra_app_secret
