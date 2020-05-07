@@ -28,7 +28,7 @@ func LogError(logger logrus.FieldLogger, err error, message string) {
 		logLevel = logErr.LogLevel
 		logFields = logErr.ExtraFields
 	}
-	logger.WithFields(logFields).WithField("error", err.Error()).Logf(logLevel, "%s: %v\n", message, err)
+	logger.WithFields(logFields).WithError(err).Logf(logLevel, "%s: %v\n", message, err)
 	if logLevel == logrus.FatalLevel {
 		logrus.Exit(1)
 	}

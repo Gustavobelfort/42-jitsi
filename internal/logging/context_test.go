@@ -62,3 +62,41 @@ func TestContextLog(t *testing.T) {
 
 	assert.Equal(t, expected, entry.Data)
 }
+
+func TestContextGetSentryCategory(t *testing.T) {
+	t.Run("NilContext", func(t *testing.T) {
+		assert.Equal(t, "", ContextGetSentryCategory(nil))
+	})
+
+	t.Run("EmptyContext", func(t *testing.T) {
+		assert.Equal(t, "", ContextGetSentryCategory(context.Background()))
+	})
+
+	t.Run("WithCategory", func(t *testing.T) {
+		expected := "category"
+
+		ctx := context.WithValue(context.Background(), sentryCategoryKey, expected)
+
+		assert.Equal(t, expected, ContextGetSentryCategory(ctx))
+	})
+}
+
+func TestContextWithSentryCategory(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("SetCategory", func(t *testing.T) {
+		expected := "category"
+
+		ctx = ContextWithSentryCategory(ctx, expected)
+
+		assert.Equal(t, expected, ctx.Value(sentryCategoryKey))
+	})
+
+	t.Run("OverwriteCategory", func(t *testing.T) {
+		expected := "other_category"
+
+		ctx = ContextWithSentryCategory(ctx, expected)
+
+		assert.Equal(t, expected, ctx.Value(sentryCategoryKey))
+	})
+}
