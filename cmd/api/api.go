@@ -19,10 +19,10 @@ import (
 func init() {
 	config.AddRequired("intra.app_id", "intra.app_secret", "intra.webhooks")
 	if err := config.Initiate(); err != nil {
-		logrus.Fatalf("could not load configuration: %v", err)
+		logrus.WithError(err).Fatalf("could not load configuration: %v", err)
 	}
 	if err := db.Init(); err != nil {
-		logrus.Fatalf("could not connect to the db: %v", err)
+		logrus.WithError(err).Fatalf("could not connect to the db: %v", err)
 	}
 }
 
@@ -36,7 +36,7 @@ func main() {
 
 	client, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
 	if err != nil {
-		logrus.Fatalf("could not initiate intra api client: %v", err)
+		logrus.WithError(err).Fatalf("could not initiate intra api client: %v", err)
 	}
 
 	hdl := handler.NewScaleTeamHandler(client, db.GlobalDB)
@@ -58,7 +58,7 @@ func waitForShutdown(consumer consumers.Consumer) {
 				logrus.Info(err)
 				return
 			}
-			logrus.Error(err)
+			logrus.WithError(err).Error(err)
 		}
 	}()
 	<-interruptChan
