@@ -21,4 +21,5 @@ require (
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 	golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1
 )

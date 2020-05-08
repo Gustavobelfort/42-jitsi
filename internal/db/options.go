@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -23,11 +24,11 @@ func ScaleTeamIDOption(id int) GetOption {
 // ScaleTeamNotifiedOption adds condition if the ScaleTeam is `notified`.
 func ScaleTeamNotifiedOption(notified bool) GetOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("notified IS ?", notified)
+		return db.Where(map[string]interface{}{"notified": notified})
 	}
 }
 
-// ScaleTeamBeginAtAfterOption adds condition if the ScaleTeam begins at or before `beginAt`
+// ScaleTeamBeginAtBeforeOption adds condition if the ScaleTeam begins at or before `beginAt`
 func ScaleTeamBeginAtBeforeOption(beginAt time.Time) GetOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("begin_at <= ?", beginAt.Format(time.RFC3339))
@@ -44,7 +45,8 @@ func ScaleTeamBeginAtAfterOption(beginAt time.Time) GetOption {
 // ScaleTeamBeginAtInOption adds condition if the ScaleTeam begins in `duration` or less.
 func ScaleTeamBeginAtInOption(duration time.Duration) GetOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("begin_at - interval ? <= NOW()", duration.String())
+		query := fmt.Sprintf("begin_at - interval '%s' <= NOW()", duration.String())
+		return db.Where(query)
 	}
 }
 

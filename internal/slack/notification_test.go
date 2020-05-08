@@ -1,39 +1,34 @@
-package slack_test
+package slack
 
 import (
 	"net/http"
-	"net/url"
 	"testing"
-	"time"
 
-	"github.com/gustavobelfort/42-jitsi/internal/db"
-	"github.com/gustavobelfort/42-jitsi/internal/slack"
+	"github.com/gustavobelfort/42-jitsi/internal/config"
+	"github.com/gustavobelfort/42-jitsi/internal/intra"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestSendNotification(t *testing.T) {
+func TestSlackClient(t *testing.T) {
+	suite.Run(t, new(SlackClientSuite))
+}
 
-	mockScaleTeam := &db.ScaleTeamModel{
-		ID:       123,
-		BeginAt:  time.Now(),
-		Notified: false,
-		Users: []db.UserModel{
-			db.UserModel{
-				ID:          1,
-				ScaleTeamID: 123,
-				Login:       "gbelfort",
-			},
-		},
-	}
+type SlackClientSuite struct {
+	suite.Suite
 
-	parsedURL, _ := url.Parse("http://localhost:8080")
-	baseClient := http.Client{
-		Timeout: time.Duration(5 * time.Second),
-	}
+	client SlackThat
+}
 
-	mockSlackClient := slack.SlackThatClient{
-		HttpClient: &baseClient,
-		BaseURL:    parsedURL,
-	}
+func (s *SlackClientSuite) SetupSuite() {
+	s.Require().Implements((*SlackThat)(nil), &ThatClient{})
+	config.Initiate()
+	intra, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
+	s.client, err = New(intra)
+	s.Require().NoError(err)
+}
 
-	mockSlackClient.SendNotification(mockScaleTeam)
+func (s *SlackClientSuite) Test00_SendNotification() {
+	logins := []string{"gus"}
+	err := s.client.SendNotification(1, logins)
+	s.Require().NoError(err)
 }

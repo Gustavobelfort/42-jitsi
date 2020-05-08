@@ -10,6 +10,6 @@ func PostMessageUserEmailsOption(userEmails []string) PostMessageOptions {
 // PostMessageAttachmentsOption changes the users emails to whom post the message.
 func PostMessageLinkOption(link string) PostMessageOptions {
 	return func(parameters *PostMessageParameters) {
-		parameters.Attachments["title_link"] = link
+		parameters.Attachments[0].TitleLink = link
 	}
 }

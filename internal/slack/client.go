@@ -1,7 +1,7 @@
 package slack
 
 import (
-	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -9,14 +9,16 @@ import (
 	"time"
 
 	"github.com/gustavobelfort/42-jitsi/internal/config"
+	"github.com/gustavobelfort/42-jitsi/internal/intra"
 )
 
-type SlackThatClient struct {
-	HttpClient *http.Client
+type ThatClient struct {
+	HTTPClient *http.Client
+	Intra      intra.Client
 	BaseURL    *url.URL
 }
 
-func (client *SlackThatClient) getURL(endpoint string) string {
+func (client *ThatClient) getURL(endpoint string) string {
 	urlCopy := &url.URL{}
 	*urlCopy = *client.BaseURL
 
@@ -24,55 +26,51 @@ func (client *SlackThatClient) getURL(endpoint string) string {
 	return urlCopy.String()
 }
 
-func (client *SlackThatClient) request(method string, endpoint string, reader io.Reader, v interface{}) error {
+func (client *ThatClient) request(method string, endpoint string, reader io.Reader) error {
 	request, err := http.NewRequest(method, client.getURL(endpoint), reader)
 	if err != nil {
 		return err
 	}
-	resp, err := client.HttpClient.Do(request)
+	resp, err := client.HTTPClient.Do(request)
 	if err != nil {
 		return err
 	}
 
-	if err := validateResponse(resp); err != nil {
-		return err
+	if resp.StatusCode != 201 {
+		return fmt.Errorf("unable to send request to the slack that client")
 	}
 
-	decoder := json.NewDecoder(resp.Body)
-	return decoder.Decode(v)
+	return nil
 }
 
-// PostMessage makes a POST request to the slack_that API to send a message to multiple users in
-// a workspace.
-func (client *SlackThatClient) PostMessage(options ...PostMessageOptions) (map[string]interface{}, error) {
-	params := defaultNotificationParameters()
+func (client *ThatClient) postMessage(options ...PostMessageOptions) error {
+	params := defaultPostMessageParameters()
 	for _, opt := range options {
 		opt(params)
 	}
 
-	data := make(map[string]interface{})
-	if err := client.request(http.MethodPost, "/", params, &data); err != nil {
-		return nil, err
+	if err := client.request(http.MethodPost, "/", params); err != nil {
+		return err
 	}
 
-	return data, nil
+	return nil
 }
 
 // GetHealth makes a GET request to the slack_that API's health endpoint.
-func (client *SlackThatClient) GetHealth() (map[string]interface{}, error) {
+func (client *ThatClient) GetHealth() (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	if err := client.request(http.MethodGet, "/health", nil, &data); err != nil {
+	if err := client.request(http.MethodGet, "/health", nil); err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
 // Initiate a SlackThat client ready to make requests to the base_url passed.
-func Initiate() error {
+func New(intra intra.Client) (SlackThat, error) {
 
 	parsedURL, err := url.Parse(config.Conf.SlackThat.URL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	timeout := time.Duration(5 * time.Second)
@@ -80,12 +78,11 @@ func Initiate() error {
 		Timeout: timeout,
 	}
 
-	Client = &SlackThatClient{
-		HttpClient: &baseClient,
+	client := &ThatClient{
 		BaseURL:    parsedURL,
+		HTTPClient: &baseClient,
+		Intra:      intra,
 	}
 
-	return nil
+	return client, nil
 }
-
-var Client *SlackThatClient

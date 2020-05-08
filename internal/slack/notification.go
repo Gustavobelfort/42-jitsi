@@ -1,39 +1,40 @@
 package slack
 
 import (
+	"context"
 	"fmt"
 	"strings"
-
-	"github.com/gustavobelfort/42-jitsi/internal/db"
-	"github.com/gustavobelfort/42-jitsi/internal/intra"
 )
 
-func (client *SlackThatClient) SendNotification(scaleTeam db.ScaleTeam) error {
+func (client *ThatClient) SendNotification(scaleTeamID int, logins []string) error {
 
-	scaleTeamID := scaleTeam.GetID()
-	scaleTeamUsers, err := scaleTeam.GetUsers()
-	if err != nil {
-		return err
-	}
-
-	var logins []string
-	for _, user := range scaleTeamUsers {
-		logins = append(logins, user.GetLogin())
-	}
-
-	userEmails, err := intra.Client.GetUsersEmails(logins)
-	if err != nil {
-		return err
-	}
+	userEmails, err := client.getUserEmails(logins)
 
 	roomName := formatRoomName(scaleTeamID, logins)
+	if err != nil {
+		return err
+	}
 
-	client.PostMessage(
+	if err := client.postMessage(
 		PostMessageUserEmailsOption(userEmails),
 		PostMessageLinkOption(roomName),
-	)
+	); err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func (client *ThatClient) getUserEmails(logins []string) ([]string, error) {
+	var userEmails []string
+	for _, login := range logins {
+		email, err := client.Intra.GetUserEmail(context.Background(), login)
+		if err != nil {
+			return nil, err
+		}
+		userEmails = append(userEmails, email)
+	}
+	return userEmails, nil
 }
 
 func formatRoomName(scaleTeamID int, logins []string) string {

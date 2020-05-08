@@ -15,6 +15,9 @@ import (
 	"github.com/gustavobelfort/42-jitsi/internal/handler"
 	"github.com/gustavobelfort/42-jitsi/internal/intra"
 	"github.com/gustavobelfort/42-jitsi/internal/logging"
+	"github.com/gustavobelfort/42-jitsi/internal/scheduler"
+	"github.com/gustavobelfort/42-jitsi/internal/slack"
+	"github.com/gustavobelfort/42-jitsi/internal/tasks"
 	"github.com/sirupsen/logrus"
 )
 
@@ -40,13 +43,31 @@ func main() {
 		IdleTimeout:  config.Conf.Timeout * 2,
 	}
 
-	client, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
+	iClient, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
 	if err != nil {
 		logrus.WithError(err).Fatalf("could not initiate intra api client: %v", err)
 	}
 
-	hdl := handler.NewScaleTeamHandler(client, db.GlobalDB)
-	consumer := router.NewRouter(server, hdl, config.Conf.Intra.Webhooks, "/", config.Conf.Timeout)
+	sClient, err := slack.New(iClient)
+	if err != nil {
+		logrus.Fatalf("could not initiate slack_that client: %v", err)
+	}
+
+	tHdl := tasks.NewTasksHandler(sClient, db.GlobalDB)
+	tasks := scheduler.Task{
+		Task:     tHdl.Notify,
+		Interval: config.Conf.WarnBefore,
+	}
+
+	scheduler, err := scheduler.New([]scheduler.Task{tasks})
+	if err != nil {
+		logrus.Fatalf("could not create scheduler: %v", err)
+	}
+
+	scheduler.Start()
+
+	stHdl := handler.NewScaleTeamHandler(iClient, db.GlobalDB)
+	consumer := router.NewRouter(server, stHdl, config.Conf.Intra.Webhooks, "/", config.Conf.Timeout)
 
 	waitForShutdown(consumer)
 }
