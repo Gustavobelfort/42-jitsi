@@ -1,12 +1,12 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +27,26 @@ func TestRequiredConfigError(t *testing.T) {
 
 }
 
+func TestStringToLogLevelFuncHook(t *testing.T) {
+
+	t.Run("BadFormat", func(t *testing.T) {
+		str := "infooooo"
+		expected := logrus.PanicLevel
+		level, err := stringToLogLevelHookFunc(reflect.TypeOf(str), reflect.TypeOf(expected), str)
+		require.Error(t, err)
+		assert.Equal(t, expected, level)
+	})
+
+	t.Run("GoodFormat", func(t *testing.T) {
+		str := "info"
+		expected := logrus.InfoLevel
+		level, err := stringToLogLevelHookFunc(reflect.TypeOf(str), reflect.TypeOf(expected), str)
+		require.NoError(t, err)
+		assert.Equal(t, expected, level)
+	})
+
+}
+
 func TestStringToMapstringFuncHook(t *testing.T) {
 
 	t.Run("BadFormat", func(t *testing.T) {
@@ -37,7 +57,7 @@ func TestStringToMapstringFuncHook(t *testing.T) {
 		assert.Equal(t, "expected string of format 'key0:value0,key1:value1,...,keyN:valueN'", err.Error())
 	})
 
-	t.Run("BadFormat", func(t *testing.T) {
+	t.Run("GoodFormat", func(t *testing.T) {
 		str := "key:value,key2:value2"
 		expected := map[string]string{"key": "value", "key2": "value2"}
 		mapstring, err := stringToMapstringHookFunc(reflect.TypeOf(str), reflect.MapOf(reflect.TypeOf(str), reflect.TypeOf(str)), str)
@@ -49,7 +69,7 @@ func TestStringToMapstringFuncHook(t *testing.T) {
 
 func TestInitiate(t *testing.T) {
 	t.Run("NoConfigFile", func(t *testing.T) {
-		os.Unsetenv("CONFIG_FILE")
+		os.Setenv("CONFIG_FILE", "")
 
 		// Setting required fields
 		os.Setenv("INTRA_APP_ID", "intra_app_id")
@@ -65,6 +85,9 @@ func TestInitiate(t *testing.T) {
 		defer os.Unsetenv("POSTGRES_PASSWORD")
 
 		expected := Configuration{
+			Environment: "development",
+			Service:     "42-jitsi",
+
 			SlackThat: SlackThatConfig{
 				URL:       "http://localhost:8080",
 				Workspace: "42born2code",
@@ -80,6 +103,12 @@ func TestInitiate(t *testing.T) {
 				Webhooks: map[string]string{
 					"key": "value",
 				},
+			},
+			LogLevel: logrus.DebugLevel,
+			Sentry: Sentry{
+				DSN:     "",
+				Levels:  []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},
+				Enabled: false,
 			},
 			Postgres: Database{
 				Host:     "localhost",
@@ -112,6 +141,9 @@ func TestInitiate(t *testing.T) {
 		os.Setenv("CONFIG_FILE", "../../configs/configs.sample.yml")
 
 		expected := Configuration{
+			Environment: "development",
+			Service:     "42-jitsi",
+
 			SlackThat: SlackThatConfig{
 				URL:       "http://localhost:8080",
 				Workspace: "42born2code",
@@ -127,6 +159,12 @@ func TestInitiate(t *testing.T) {
 				Webhooks: map[string]string{
 					"--FILL": "ME--",
 				},
+			},
+			LogLevel: logrus.DebugLevel,
+			Sentry: Sentry{
+				DSN:     "https://identifier@sentry.com/projectid",
+				Levels:  []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},
+				Enabled: false,
 			},
 			Postgres: Database{
 				Host:     "localhost",
@@ -146,7 +184,6 @@ func TestInitiate(t *testing.T) {
 		}
 
 		assert.NoError(t, Initiate())
-		fmt.Println(viper.GetString("postgres.password"))
 		assert.Equal(t, expected, Conf)
 	})
 }

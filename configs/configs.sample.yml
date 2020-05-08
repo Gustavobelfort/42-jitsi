@@ -1,4 +1,23 @@
 ##
+# General configuration (mostly used by logs)
+##
+environment: development
+service: 42-jitsi
+
+##
+# Log configuration
+##
+log_level: debug
+# -- sentry configuration
+sentry:
+  dsn: https://identifier@sentry.com/projectid
+  levels:
+    - error
+    - fatal
+    - panic
+  enabled: no
+
+##
 # SlackThat configuration
 ##
 slack_that:

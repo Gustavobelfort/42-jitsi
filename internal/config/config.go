@@ -6,10 +6,15 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // Configuration is the type that will hold the configuration informations
 type Configuration struct {
+	Environment string
+	Service     string
+
 	EmailSuffix string          `mapstructure:"email_suffix"`
 	SlackThat   SlackThatConfig `mapstructure:"slack_that"`
 	WarnBefore  time.Duration   `mapstructure:"warn_before"`
@@ -21,6 +26,16 @@ type Configuration struct {
 	Timeout time.Duration
 
 	HTTPAddr string `mapstructure:"http_addr"`
+
+	LogLevel logrus.Level `mapstructure:"log_level"`
+	Sentry   Sentry
+}
+
+// Sentry is the type that will hold the sentry informations
+type Sentry struct {
+	DSN     string
+	Levels  []logrus.Level
+	Enabled bool
 }
 
 // Database is the type that will hold the database informations
@@ -77,4 +92,11 @@ func stringToMapstringHookFunc(f, t reflect.Type, data interface{}) (interface{}
 	}
 
 	return mapstring, nil
+}
+
+func stringToLogLevelHookFunc(f, t reflect.Type, data interface{}) (interface{}, error) {
+	if f.Kind() != reflect.String || t != reflect.TypeOf(logrus.InfoLevel) {
+		return data, nil
+	}
+	return logrus.ParseLevel(data.(string))
 }

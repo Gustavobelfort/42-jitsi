@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gustavobelfort/42-jitsi/internal/config"
 	"github.com/gustavobelfort/42-jitsi/internal/consumers"
 	"github.com/gustavobelfort/42-jitsi/internal/consumers/router"
@@ -21,12 +23,16 @@ func init() {
 	if err := config.Initiate(); err != nil {
 		logrus.WithError(err).Fatalf("could not load configuration: %v", err)
 	}
+	logging.Initiate()
 	if err := db.Init(); err != nil {
 		logrus.WithError(err).Fatalf("could not connect to the db: %v", err)
 	}
 }
 
 func main() {
+	if hub := sentry.CurrentHub(); hub.Client() != nil {
+		defer hub.Flush(time.Second * 5)
+	}
 	server := &http.Server{
 		Addr:         config.Conf.HTTPAddr,
 		ReadTimeout:  config.Conf.Timeout * 2,

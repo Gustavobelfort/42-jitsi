@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gustavobelfort/42-jitsi/internal/config"
 	"github.com/gustavobelfort/42-jitsi/internal/consumers"
 	amqp2 "github.com/gustavobelfort/42-jitsi/internal/consumers/amqp"
@@ -21,12 +23,16 @@ func init() {
 	if err := config.Initiate(); err != nil {
 		logrus.Fatalf("could not load configuration: %v", err)
 	}
+	logging.Initiate()
 	if err := db.Init(); err != nil {
 		logrus.Fatalf("could not connect to the db: %v", err)
 	}
 }
 
 func main() {
+	if hub := sentry.CurrentHub(); hub.Client() != nil {
+		defer hub.Flush(time.Second * 5)
+	}
 	client, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
 	if err != nil {
 		logrus.Fatalf("could not initiate intra api client: %v", err)

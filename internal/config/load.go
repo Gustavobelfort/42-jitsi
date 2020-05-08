@@ -1,10 +1,8 @@
 package config
 
 import (
-	"errors"
 	"time"
 
-	"github.com/gustavobelfort/42-jitsi/internal/logging"
 	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -26,6 +24,9 @@ func setDefaults() {
 	viper.SetTypeByDefaultValue(true)
 
 	viper.SetDefault("config_file", "./config.yml")
+
+	viper.SetDefault("environment", "development")
+	viper.SetDefault("service", "42-jitsi")
 
 	viper.SetDefault("email_suffix", "student.42campus.org")
 
@@ -49,6 +50,11 @@ func setDefaults() {
 	viper.SetDefault("rabbitmq.user", "guest")
 	viper.SetDefault("rabbitmq.password", "guest")
 	viper.SetDefault("rabbitmq.queue", "webhooks_intra_42jitsi")
+
+	viper.SetDefault("log_level", log.DebugLevel)
+
+	viper.SetDefault("sentry.levels", []log.Level{log.ErrorLevel, log.FatalLevel, log.PanicLevel})
+	viper.SetDefault("sentry.enabled", false)
 }
 
 func bindEnv() {
@@ -65,6 +71,8 @@ func bindEnv() {
 		log.Debugf("bound '%s' to '%s'", env, config)
 	}
 
+	logBinding("sentry.dsn", "SENTRY_DSN")
+
 	logBinding("postgres.password", "POSTGRES_PASSWORD")
 	logBinding("intra.app_id", "INTRA_APP_ID")
 	logBinding("intra.app_secret", "INTRA_APP_SECRET")
@@ -74,24 +82,26 @@ func bindEnv() {
 
 }
 
-func loadFile() error {
+func loadFile() {
 	viper.SetConfigType("yaml")
 
 	filename := viper.GetString("config_file")
 	if filename == "" {
-		return logging.WithLog(errors.New("'config_file' is empty"), log.InfoLevel, nil)
+		log.Info("'config_file' is empty")
+		return
 	}
 	viper.SetConfigFile(viper.GetString("config_file"))
 	if err := viper.ReadInConfig(); err != nil {
-		return logging.WithLog(err, log.ErrorLevel, log.Fields{"config_file": filename})
+		log.WithField("config_file", filename).WithError(err).Errorf("loading config file: %v", err)
+		return
 	}
-	log.WithField("config_file", filename).Infof("loaded config from: '%s'\n", filename)
-	return nil
+	log.WithField("config_file", filename).Infof("loaded config from: '%s'", filename)
 }
 
 func unmarshalConfig() error {
 	decodeHook := mapstructure.ComposeDecodeHookFunc(
 		stringToMapstringHookFunc,
+		stringToLogLevelHookFunc,
 		mapstructure.StringToSliceHookFunc(","),
 		mapstructure.StringToTimeDurationHookFunc(),
 	)
@@ -103,9 +113,7 @@ func Initiate() error {
 	log.Infoln("loading configuration")
 	setDefaults()
 	bindEnv()
-	err := loadFile()
-	// logging.LogError won't log if err is nil.
-	logging.LogError(log.StandardLogger(), err, "loading config file")
+	loadFile()
 
 	if err := checkRequired(requiredConf...); err != nil {
 		return err
