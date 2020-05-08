@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -15,6 +16,8 @@ type Configuration struct {
 	Intra       Intra
 	Postgres    Database
 
+	RabbitMQ RabbitMQ
+
 	Timeout time.Duration
 
 	HTTPAddr string `mapstructure:"http_addr"`
@@ -27,6 +30,21 @@ type Database struct {
 	DB       string
 	User     string
 	Password string
+}
+
+// RabbitMQ is the type that will hold the RabbitMQ configurations
+type RabbitMQ struct {
+	Host     string
+	Port     string
+	VHost    string
+	User     string
+	Password string
+	Queue    string
+}
+
+// URL returns the formatted url of the rabbitmq configuration.
+func (r *RabbitMQ) URL() string {
+	return fmt.Sprintf("amqp://%s:%s@%s:%s/%s", r.User, r.Password, r.Host, r.Port, r.VHost)
 }
 
 // Intra is the type that will hold the Intranet configurations
