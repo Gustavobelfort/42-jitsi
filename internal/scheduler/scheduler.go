@@ -6,9 +6,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/gustavobelfort/42-jitsi/internal/logging"
 	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
 )
 
 func New(tasks []Task) (Scheduler, error) {
@@ -18,14 +16,12 @@ func New(tasks []Task) (Scheduler, error) {
 
 	if tasks == nil {
 		errorMessage := fmt.Errorf("empty task list")
-		logging.LogError(logrus.StandardLogger(), errorMessage, "while creating a new scheduler")
 		return s, errorMessage
 	}
 
 	for _, t := range tasks {
 		err := s.Add(t.Task, t.Interval)
 		if err != nil {
-			logging.LogError(logrus.StandardLogger(), err, "while creating a new scheduler")
 			return s, err
 		}
 	}
@@ -39,9 +35,8 @@ func (s *Scheduler) Add(task func(), every time.Duration) error {
 
 	_, err := s.Scheduler.AddFunc(formatedDuration, task)
 	if err != nil {
-		errorMessage := fmt.Errorf("failed to add %s to the scheduler", getFunctionName(task))
-		logging.LogError(logrus.StandardLogger(), errorMessage, "while adding a new task")
-		return err
+		errorMessage := fmt.Errorf("failed to add %s to the scheduler, err: %v", getFunctionName(task), err)
+		return errorMessage
 	}
 
 	return nil
