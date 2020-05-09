@@ -16,6 +16,17 @@ sentry:
     - fatal
     - panic
   enabled: no
+# -- logstash configuration
+logstash:
+  host: localhost
+  port: 5000
+  protocol: tcp
+  levels:
+    - info
+    - warning
+    - error
+    - fatal
+    - panic
 
 ##
 # SlackThat configuration

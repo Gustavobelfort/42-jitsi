@@ -28,7 +28,17 @@ type Configuration struct {
 	HTTPAddr string `mapstructure:"http_addr"`
 
 	LogLevel logrus.Level `mapstructure:"log_level"`
+	Logstash Logstash
 	Sentry   Sentry
+}
+
+// Logstash is the type that will hold the logstash informations
+type Logstash struct {
+	Host     string
+	Port     string
+	Protocol string
+	Levels   []logrus.Level
+	Enabled  bool
 }
 
 // Sentry is the type that will hold the sentry informations

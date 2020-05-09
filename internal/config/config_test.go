@@ -105,6 +105,13 @@ func TestInitiate(t *testing.T) {
 				},
 			},
 			LogLevel: logrus.DebugLevel,
+			Logstash: Logstash{
+				Host:     "localhost",
+				Port:     "5000",
+				Protocol: "tcp",
+				Levels:   []logrus.Level{logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},
+				Enabled:  false,
+			},
 			Sentry: Sentry{
 				DSN:     "",
 				Levels:  []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},
@@ -161,6 +168,13 @@ func TestInitiate(t *testing.T) {
 				},
 			},
 			LogLevel: logrus.DebugLevel,
+			Logstash: Logstash{
+				Host:     "localhost",
+				Port:     "5000",
+				Protocol: "tcp",
+				Levels:   []logrus.Level{logrus.InfoLevel, logrus.WarnLevel, logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},
+				Enabled:  false,
+			},
 			Sentry: Sentry{
 				DSN:     "https://identifier@sentry.com/projectid",
 				Levels:  []logrus.Level{logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel},

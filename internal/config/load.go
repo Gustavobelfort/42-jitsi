@@ -53,6 +53,12 @@ func setDefaults() {
 
 	viper.SetDefault("log_level", log.DebugLevel)
 
+	viper.SetDefault("logstash.host", "localhost")
+	viper.SetDefault("logstash.port", "5000")
+	viper.SetDefault("logstash.protocol", "tcp")
+	viper.SetDefault("logstash.levels", []log.Level{log.InfoLevel, log.WarnLevel, log.ErrorLevel, log.FatalLevel, log.PanicLevel})
+	viper.SetDefault("logstash.enabled", false)
+
 	viper.SetDefault("sentry.levels", []log.Level{log.ErrorLevel, log.FatalLevel, log.PanicLevel})
 	viper.SetDefault("sentry.enabled", false)
 }
