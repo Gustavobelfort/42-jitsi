@@ -1,0 +1,32 @@
+version: "3.5"
+
+x-common:
+  &x-common
+  env_file:
+    - .env
+
+  logging:
+    options:
+      max-file: "5"
+      max-size: 10m
+
+  networks:
+    - 42jitsi
+
+services:
+  consumer:
+    <<: *x-common
+    image: 42jitsi
+    build: .
+    command: /bin/${JITSI42_CONSUMER_TYPE:-api}
+
+    volumes:
+    - ${CONFIG_FILE:-./config.yml}:/config.yml:ro
+    environment:
+      CONFIG_FILE: /config.yml
+
+
+networks:
+  42jitsi:
+
+  
