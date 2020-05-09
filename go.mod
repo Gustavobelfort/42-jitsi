@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
-	github.com/bshuster-repo/logrus-logstash-hook v0.4.1
+	github.com/bshuster-repo/logrus-logstash-hook v0.0.0-20190911164539-b3d898b5138a
 	github.com/getsentry/sentry-go v0.6.0
 	github.com/gin-gonic/gin v1.6.2
 	github.com/golang/protobuf v1.4.0 // indirect
