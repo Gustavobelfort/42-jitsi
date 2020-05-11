@@ -88,6 +88,8 @@ value.
 
 _Common configurations_:
 - General configuration: `TIMEOUT`
+- Logging configuration: `LOG_LEVEL`, `SENTRY_DSN`, `SENTRY_LEVELS`, `SENTRY_ENABLED`, `LOGSTASH_HOST`, `LOGSTASH_PORT`
+  `LOGSTASH_PROTOCOL`, `LOGSTASH_LEVELS`, `LOGSTASH_ENABLED`
 - Intranet application: `INTRA_APP_ID`, `INTRA_APP_SECRET`.
 - PostgreSQL database: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`.
 
