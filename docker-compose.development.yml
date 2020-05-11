@@ -1,0 +1,44 @@
+version: "3.5"
+
+x-common:
+  &x-common
+  env_file:
+    - .env
+
+  logging:
+    options:
+      max-file: "5"
+      max-size: 10m
+
+  networks:
+    - 42jitsi
+
+services:
+  consumer:
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      ENVIRONMENT: development
+
+  db:
+    <<: *x-common
+    image: postgres:${POSTGRES_VERSION:-9.6}
+    ports:
+      - ${POSTGRES_EXTERNAL_PORT:-127.0.0.1:5432}:5432
+    volumes:
+    - postgres_data:/var/lib/postgres/data
+
+  rabbitmq:
+    <<: *x-common
+    image: rabbitmq:${RABBITMQ_VERSION:-3.7-management}
+    ports:
+      - ${RABBITMQ_EXTERNAL_PORT:-127.0.0.1:5672}:5672
+      - ${RABBITMQ_ADMIN_PORT:-127.0.0.1:15672}:15672
+    volumes:
+    - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:
+  postgres_data:

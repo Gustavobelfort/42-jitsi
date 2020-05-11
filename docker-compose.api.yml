@@ -1,0 +1,8 @@
+version: "3.5"
+
+services:
+  consumer:
+    command: /bin/api
+
+    ports:
+      - ${JITSI42_API_PORT:-127.0.0.1:5000}:5000
