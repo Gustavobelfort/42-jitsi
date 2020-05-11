@@ -40,13 +40,13 @@ func main() {
 		IdleTimeout:  config.Conf.Timeout * 2,
 	}
 
-	iClient, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
+	client, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
 	if err != nil {
 		logrus.WithError(err).Fatalf("could not initiate intra api client: %v", err)
 	}
 
-	stHdl := handler.NewScaleTeamHandler(iClient, db.GlobalDB)
-	consumer := router.NewRouter(server, stHdl, config.Conf.Intra.Webhooks, "/", config.Conf.Timeout)
+	hdl := handler.NewScaleTeamHandler(client, db.GlobalDB)
+	consumer := router.NewRouter(server, hdl, config.Conf.Intra.Webhooks, "/", config.Conf.Timeout)
 
 	waitForShutdown(consumer)
 }
