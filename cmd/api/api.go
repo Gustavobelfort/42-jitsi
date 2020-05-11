@@ -17,6 +17,7 @@ import (
 )
 
 func init() {
+	config.AddRequired("intra.app_id", "intra.app_secret", "intra.webhooks")
 	if err := config.Initiate(); err != nil {
 		logrus.Fatalf("could not load configuration: %v", err)
 	}

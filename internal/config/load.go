@@ -14,6 +14,13 @@ import (
 // where the configurations gathered from the config file will be stored
 var Conf Configuration
 
+var requiredConf = []string{"postgres.password"}
+
+// AddRequired will add more required variables to the list of required configuration.
+func AddRequired(required ...string) {
+	requiredConf = append(requiredConf, required...)
+}
+
 func setDefaults() {
 	log.Debugln("setting config defaults value")
 	viper.SetTypeByDefaultValue(true)
@@ -100,7 +107,7 @@ func Initiate() error {
 	// logging.LogError won't log if err is nil.
 	logging.LogError(log.StandardLogger(), err, "loading config file")
 
-	if err := checkRequired("intra.app_id", "intra.app_secret", "intra.webhooks", "postgres.password", "slack_that.workspace"); err != nil {
+	if err := checkRequired(requiredConf...); err != nil {
 		return err
 	}
 
