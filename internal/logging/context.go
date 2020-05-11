@@ -11,6 +11,7 @@ type contextKey int
 
 const (
 	logFieldsKey contextKey = iota
+	sentryCategoryKey
 )
 
 // ContextLog returns an entry with the fields of the passed context.
@@ -41,4 +42,18 @@ func ContextWithFields(ctx context.Context, fields logrus.Fields) context.Contex
 // ContextWithField adds a logging field to the given context.
 func ContextWithField(ctx context.Context, key string, value interface{}) context.Context {
 	return ContextWithFields(ctx, logrus.Fields{key: value})
+}
+
+// ContextWithSentryCategory sets the sentry category for the given context.
+func ContextWithSentryCategory(ctx context.Context, category string) context.Context {
+	return context.WithValue(ctx, sentryCategoryKey, category)
+}
+
+// ContextGetSentryCategory gets the sentry category of the given context.
+func ContextGetSentryCategory(ctx context.Context) string {
+	category := ""
+	if ctx != nil {
+		category, _ = ctx.Value(sentryCategoryKey).(string)
+	}
+	return category
 }

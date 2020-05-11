@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gustavobelfort/42-jitsi/internal/config"
 	"github.com/gustavobelfort/42-jitsi/internal/consumers"
 	"github.com/gustavobelfort/42-jitsi/internal/consumers/router"
@@ -19,14 +21,18 @@ import (
 func init() {
 	config.AddRequired("intra.app_id", "intra.app_secret", "intra.webhooks")
 	if err := config.Initiate(); err != nil {
-		logrus.Fatalf("could not load configuration: %v", err)
+		logrus.WithError(err).Fatalf("could not load configuration: %v", err)
 	}
+	logging.Initiate()
 	if err := db.Init(); err != nil {
-		logrus.Fatalf("could not connect to the db: %v", err)
+		logrus.WithError(err).Fatalf("could not connect to the db: %v", err)
 	}
 }
 
 func main() {
+	if hub := sentry.CurrentHub(); hub.Client() != nil {
+		defer hub.Flush(time.Second * 5)
+	}
 	server := &http.Server{
 		Addr:         config.Conf.HTTPAddr,
 		ReadTimeout:  config.Conf.Timeout * 2,
@@ -36,7 +42,7 @@ func main() {
 
 	client, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
 	if err != nil {
-		logrus.Fatalf("could not initiate intra api client: %v", err)
+		logrus.WithError(err).Fatalf("could not initiate intra api client: %v", err)
 	}
 
 	hdl := handler.NewScaleTeamHandler(client, db.GlobalDB)
@@ -58,7 +64,7 @@ func waitForShutdown(consumer consumers.Consumer) {
 				logrus.Info(err)
 				return
 			}
-			logrus.Error(err)
+			logrus.WithError(err).Error(err)
 		}
 	}()
 	<-interruptChan

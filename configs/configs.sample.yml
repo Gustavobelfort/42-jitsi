@@ -1,4 +1,34 @@
 ##
+# General configuration (mostly used by logs)
+##
+environment: development
+service: 42-jitsi
+
+##
+# Log configuration
+##
+log_level: debug
+# -- sentry configuration
+sentry:
+  dsn: https://identifier@sentry.com/projectid
+  levels:
+    - error
+    - fatal
+    - panic
+  enabled: no
+# -- logstash configuration
+logstash:
+  host: localhost
+  port: 5000
+  protocol: tcp
+  levels:
+    - info
+    - warning
+    - error
+    - fatal
+    - panic
+
+##
 # SlackThat configuration
 ##
 slack_that:

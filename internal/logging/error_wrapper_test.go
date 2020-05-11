@@ -18,7 +18,7 @@ func TestLogError(t *testing.T) {
 	expectedMessage := "message"
 	expectedLogLevel := logrus.ErrorLevel
 	expectedFields := logrus.Fields{
-		"error": expectedError.Error(),
+		"error": expectedError,
 	}
 
 	assertExpectations := func(t *testing.T) {
@@ -54,14 +54,14 @@ func TestLogError(t *testing.T) {
 
 		expectedLogLevel = logrus.WarnLevel
 		expectedFields = logrus.Fields{
-			"error": expectedError.Error(),
-			"key":   "value",
+			"key": "value",
 		}
 		expectedError = &WithLogError{
 			LogLevel:    expectedLogLevel,
 			ExtraFields: expectedFields,
 			err:         expectedError,
 		}
+		expectedFields["error"] = expectedError
 
 		LogError(logger, expectedError, expectedMessage)
 		assertExpectations(t)
