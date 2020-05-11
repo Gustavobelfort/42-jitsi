@@ -122,20 +122,18 @@ func TestInitiate(t *testing.T) {
 			HTTPAddr:    "0.0.0.0:5000",
 			Timeout:     time.Second * 10,
 			Intra: Intra{
-				AppID:     "intra_app_id",
-				AppSecret: "intra_app_secret",
+				AppID:     "--FILL ME--",
+				AppSecret: "--FILL ME--",
 				Webhooks: map[string]string{
-					"scale_team.create":  "create_secret",
-					"scale_team.update":  "update_secret",
-					"scale_team.destroy": "destroy_secret",
+					"--FILL": "ME--",
 				},
 			},
 			Postgres: Database{
-				Host:     "1",
-				Port:     "2",
-				DB:       "3",
-				User:     "4",
-				Password: "5",
+				Host:     "localhost",
+				Port:     "5432",
+				DB:       "postgres",
+				User:     "postgres",
+				Password: "--FILL ME--",
 			},
 			RabbitMQ: RabbitMQ{
 				Host:     "localhost",
