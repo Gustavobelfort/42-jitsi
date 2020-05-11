@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// SendNotification sends a notification to multiple users containing a link to a meet.jit.si server
 func (client *ThatClient) SendNotification(scaleTeamID int, logins []string) error {
 
 	userEmails, err := client.getUserEmails(logins)

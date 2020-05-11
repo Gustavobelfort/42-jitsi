@@ -19,6 +19,7 @@ type PostMessageParameters struct {
 	buffer *bytes.Buffer
 }
 
+// Attachment is the struct that will hold the attachments to be sent by the post message
 type Attachment struct {
 	Color     string `json:"color,omitempty"`
 	Pretext   string `json:"pretext,omitempty"`

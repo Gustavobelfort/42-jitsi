@@ -9,7 +9,8 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-func New(tasks []Task) (Scheduler, error) {
+// New returns a new cron job runner with the given tasks
+func New(tasks []Task) (SchedulerInterface, error) {
 	s := Scheduler{}
 
 	s.Scheduler = cron.New()
@@ -29,9 +30,10 @@ func New(tasks []Task) (Scheduler, error) {
 	return s, nil
 }
 
-func (s *Scheduler) Add(task func(), every time.Duration) error {
+// Add adds a func to the Cron to be run on the given schedule.
+func (s Scheduler) Add(task func(), every time.Duration) error {
 
-	formatedDuration := FormatDuration(every)
+	formatedDuration := formatDuration(every)
 
 	_, err := s.Scheduler.AddFunc(formatedDuration, task)
 	if err != nil {
@@ -43,11 +45,19 @@ func (s *Scheduler) Add(task func(), every time.Duration) error {
 
 }
 
-func (s *Scheduler) Start() {
+// Start the cron scheduler in its own goroutine, or no-op if already started.
+func (s Scheduler) Start() error {
 	s.Scheduler.Start()
+	return nil
 }
 
-func FormatDuration(interval time.Duration) string {
+// Stop stops the cron scheduler if it is running; otherwise it does nothing. A context is returned so the caller can wait for running jobs to complete.
+func (s Scheduler) Stop() error {
+	s.Scheduler.Stop()
+	return nil
+}
+
+func formatDuration(interval time.Duration) string {
 	return fmt.Sprintf("@every %s", interval.String())
 }
 

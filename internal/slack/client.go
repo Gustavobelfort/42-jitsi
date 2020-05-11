@@ -12,6 +12,7 @@ import (
 	"github.com/gustavobelfort/42-jitsi/internal/intra"
 )
 
+// ThatClient is the tipe that will hold the SlackThat client configurations
 type ThatClient struct {
 	HTTPClient *http.Client
 	Intra      intra.Client
@@ -65,7 +66,7 @@ func (client *ThatClient) GetHealth() (map[string]interface{}, error) {
 	return data, nil
 }
 
-// Initiate a SlackThat client ready to make requests to the base_url passed.
+// New Initiates a SlackThat client ready to make requests to the base_url passed.
 func New(intra intra.Client) (SlackThat, error) {
 
 	parsedURL, err := url.Parse(config.Conf.SlackThat.URL)

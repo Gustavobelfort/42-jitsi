@@ -17,5 +17,6 @@ type Task struct {
 
 type SchedulerInterface interface {
 	Add(task func(), every time.Duration) error
-	Start()
+	Start() error
+	Stop() error
 }
