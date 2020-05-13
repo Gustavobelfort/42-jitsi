@@ -31,6 +31,12 @@ The repository will be using:
 
 ## Usage
 
+### Slack Configuration
+
+You will need to deploy [slack_that](https://github.com/jgengo/slack_that) in your infrastructure.
+
+The bot token will require the scope `chat:write`.
+
 ### Configuration
 
 Read the configuration samples _[configs.sample.yaml](./configs/configs.sample.yml)_ and _[example.env](./configs/example.env)_ to understand better
