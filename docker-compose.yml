@@ -25,6 +25,17 @@ services:
     environment:
       CONFIG_FILE: /config.yml
 
+  daemon:
+    <<: *x-common
+    image: 42jitsi
+    build: .
+    command: /bin/daemon
+
+    volumes:
+      - ${CONFIG_FILE:-./config.yml}:/config.yml:ro
+    environment:
+      CONFIG_FILE: /config.yml
+
 
 networks:
   42jitsi:
