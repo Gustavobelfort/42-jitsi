@@ -13,16 +13,12 @@ func TestScheduler(t *testing.T) {
 	suite.Run(t, new(TestSchedulerSuite))
 }
 
-type SchedulerMock struct {
-	mock.Mock
-}
-
 type TestSchedulerSuite struct {
 	suite.Suite
 
-	expected []int
-	tasks    []scheduler.Task
-	mock     *SchedulerMock
+	tasks []scheduler.Task
+	mock  *mock.Mock
+	c     chan struct{}
 }
 
 func (s *TestSchedulerSuite) SetupSuite() {
@@ -37,7 +33,8 @@ func (s *TestSchedulerSuite) SetupSuite() {
 			Interval: time.Second * 1,
 		},
 	}
-	s.mock = &SchedulerMock{}
+	s.mock = &mock.Mock{}
+	s.c = make(chan struct{})
 
 }
 
@@ -56,15 +53,32 @@ func (s *TestSchedulerSuite) Test00_NewScheduler() {
 func (s *TestSchedulerSuite) Test01_ScheduledTasks() {
 	scheduler, _ := scheduler.New(s.tasks)
 	scheduler.Start()
-	expected := []int{1, 2}
-	time.Sleep(1 * time.Second)
-	s.Require().Equal(expected, s.expected)
+	defer scheduler.Stop()
+	s.mock.On("task1").Return().Once()
+	s.mock.On("task2").Return().Once()
+
+	ticker := time.NewTicker(time.Second * 2)
+	defer ticker.Stop()
+	for i := 0; i < 2; {
+		select {
+		case <-ticker.C:
+			i = 2
+		case <-s.c:
+			i++
+		}
+	}
+}
+
+func (s *TestSchedulerSuite) TearDownTest() {
+	s.mock.AssertExpectations(s.T())
 }
 
 func (s *TestSchedulerSuite) task1() {
-	s.expected = append(s.expected, 1)
+	s.mock.MethodCalled("task1")
+	s.c <- struct{}{}
 }
 
 func (s *TestSchedulerSuite) task2() {
-	s.expected = append(s.expected, 2)
+	s.mock.MethodCalled("task2")
+	s.c <- struct{}{}
 }
