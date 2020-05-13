@@ -109,7 +109,7 @@ func (s *ManagerSuite) Test02_SelectScaleTeamsWithOptions_0() {
 		expectedNotified = false
 	)
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`WHERE (id = $1) AND (begin_at >= $2) AND (notified IS $3)`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "scale_teams" WHERE (id = $1) AND (begin_at >= $2) AND ("scale_teams"."notified" = $3)`)).
 		WithArgs(expectedID, expectedBeginAt.Format(time.RFC3339), expectedNotified).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}),
@@ -128,7 +128,7 @@ func (s *ManagerSuite) Test03_SelectScaleTeamsWithOptions_1() {
 		expectedNotified = false
 	)
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`WHERE (id = $1) AND (begin_at <= $2) AND (notified IS $3)`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`WHERE (id = $1) AND (begin_at <= $2) AND ("scale_teams"."notified" = $3)`)).
 		WithArgs(expectedID, expectedBeginAt.Format(time.RFC3339), expectedNotified).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}),
@@ -142,18 +142,16 @@ func (s *ManagerSuite) Test03_SelectScaleTeamsWithOptions_1() {
 
 func (s *ManagerSuite) Test04_SelectScaleTeamsWithOptions_2() {
 	var (
-		expectedID       = 1000
-		expectedDuration = time.Hour
-		expectedNotified = false
+		expectedID = 1000
 	)
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`WHERE (id = $1) AND (begin_at - interval $2 <= NOW())`)).
-		WithArgs(expectedID, expectedDuration.String(), expectedNotified).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "scale_teams" WHERE (id = $1)`)).
+		WithArgs(expectedID).
 		WillReturnRows(
 			sqlmock.NewRows([]string{"id", "begin_at", "notified"}),
 		)
 
-	scaleTeams, err := s.scaleTeamManager.Get(s.db, ScaleTeamIDOption(expectedID), ScaleTeamBeginAtInOption(expectedDuration), ScaleTeamNotifiedOption(expectedNotified))
+	scaleTeams, err := s.scaleTeamManager.Get(s.db, ScaleTeamIDOption(expectedID))
 	s.Require().NoError(err)
 	s.Require().NotNil(scaleTeams)
 	s.Require().Len(scaleTeams, 0)

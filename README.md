@@ -1,5 +1,7 @@
 # 42-Jitsi (Temporary Name)
 
+![goreportcard](https://goreportcard.com/badge/github.com/Gustavobelfort/42-jitsi)
+
 > Made by [gus](https://github.com/Gustavobelfort) and [pistache](https://github.com/clafoutis42) for 42-Network.
 
 ## Introduction
@@ -9,10 +11,23 @@
 The repository will be using:
 - [gin](https://github.com/gin-gonic/gin)
 - [gorm](https://github.com/jinzhu/gorm)
+- [cron.v3](https://github.com/robfig/cron)
 - [slack-that](https://github.com/jgengo/slack-that)
 
 > This project was made to facilitate remote evaluations during the COVID-19 crisis.  
 > As a distancing measure, we suggest you use it for a while a short time after the re-opening of your campus.
+
+## How it works
+
+![diagram](/assets/diagram.png)
+
+ - After started 42 Jitsi receives information from one of the configured consumers ( see [Consumers](###The-consumers) ) 
+ - Stores the processed scale teams into a PostgreSQL DB
+ - A daemon runs on a configured wait interval ( 15 minutes by default )
+ - At each run the daemon:  
+    - Gets the notifiable scale teams from the database
+    - Send a HTTP request to a configured Slack_That Client
+    - Updates the db to set the scale teams as notified if everything occurs sucessfully
 
 ## Usage
 

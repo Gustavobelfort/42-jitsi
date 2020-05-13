@@ -33,7 +33,7 @@ func main() {
 		logrus.Fatalf("could not initiate intra api client: %v", err)
 	}
 
-	sClient, err := slack.New(iClient)
+	sClient, err := slack.New(iClient, config.Conf.SlackThat.URL)
 	if err != nil {
 		logrus.Fatalf("could not initiate slack_that client: %v", err)
 	}

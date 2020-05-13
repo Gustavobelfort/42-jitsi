@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/gustavobelfort/42-jitsi/internal/config"
 	"github.com/gustavobelfort/42-jitsi/internal/intra"
 )
 
@@ -67,9 +66,9 @@ func (client *ThatClient) GetHealth() (map[string]interface{}, error) {
 }
 
 // New Initiates a SlackThat client ready to make requests to the base_url passed.
-func New(intra intra.Client) (SlackThat, error) {
+func New(intra intra.Client, baseURL string) (SlackThat, error) {
 
-	parsedURL, err := url.Parse(config.Conf.SlackThat.URL)
+	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
