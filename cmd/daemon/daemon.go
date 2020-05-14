@@ -21,6 +21,7 @@ func init() {
 	if err := config.Initiate(); err != nil {
 		logrus.Fatalf("could not load configuration: %v", err)
 	}
+	logging.Initiate()
 	if err := db.Init(); err != nil {
 		logrus.Fatalf("could not connect to the db: %v", err)
 	}
