@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gustavobelfort/42-jitsi/internal/db"
@@ -251,6 +252,7 @@ func (s *ScaleTeamHandlerSuite) Test06_HandleUpdate() {
 	defer recordMock.AssertExpectations(s.T())
 	s.stMock.On("Get", mock.Anything, mock.Anything).Return([]db.ScaleTeam{recordMock}, nil).Once()
 
+	recordMock.On("GetBeginAt").Return(time.Now()).Once()
 	recordMock.On("SetBeginAt", mock.Anything).Return().Once()
 	recordMock.On("SetNotified", false).Return().Once()
 
@@ -260,7 +262,35 @@ func (s *ScaleTeamHandlerSuite) Test06_HandleUpdate() {
 	s.NoError(err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test07_HandleUpdate_NotInDB() {
+func (s *ScaleTeamHandlerSuite) Test07_HandleUpdate_NoUpdate() {
+	expectedTeam := 42
+
+	expectedTimeString := "2020-07-15T21:00:00.000Z"
+	expectedTime, _ := time.Parse(time.RFC3339, expectedTimeString)
+
+	payload := []byte(fmt.Sprintf(
+		`{"id": 21, "user": {"login": "xlogin"}, "team": {"id": %d}, "begin_at": "%s"}`,
+		expectedTeam,
+		expectedTimeString,
+	))
+
+	expectedContext := context.Background()
+	s.cMock.On("GetTeamMembers", expectedContext, expectedTeam).Return([]string{}, nil).Once()
+
+	s.dbMock.ExpectBegin()
+	s.dbMock.ExpectRollback()
+
+	recordMock := &ScaleTeamMock{}
+	defer recordMock.AssertExpectations(s.T())
+	s.stMock.On("Get", mock.Anything, mock.Anything).Return([]db.ScaleTeam{recordMock}, nil).Once()
+
+	recordMock.On("GetBeginAt").Return(expectedTime).Once()
+
+	err := s.handler.HandleUpdate(expectedContext, payload)
+	s.NoError(err)
+}
+
+func (s *ScaleTeamHandlerSuite) Test08_HandleUpdate_NotInDB() {
 	expectedID := 21
 	expectedCorrector := "xlogin"
 	expectedTeam := 42
@@ -295,14 +325,14 @@ func (s *ScaleTeamHandlerSuite) Test07_HandleUpdate_NotInDB() {
 	s.NoError(err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test08_HandleUpdate_PayloadError() {
+func (s *ScaleTeamHandlerSuite) Test09_HandleUpdate_PayloadError() {
 	payload := []byte(`{"id": "twenty-one"}`)
 
 	err := s.handler.HandleUpdate(context.Background(), payload)
 	s.Error(err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test09_HandleUpdate_GetError() {
+func (s *ScaleTeamHandlerSuite) Test10_HandleUpdate_GetError() {
 	expectedTeam := 42
 
 	payload := []byte(fmt.Sprintf(
@@ -324,7 +354,7 @@ func (s *ScaleTeamHandlerSuite) Test09_HandleUpdate_GetError() {
 	s.Equal(expectedError, err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test10_HandleUpdate_SaveError() {
+func (s *ScaleTeamHandlerSuite) Test11_HandleUpdate_SaveError() {
 	expectedTeam := 42
 
 	payload := []byte(fmt.Sprintf(
@@ -342,6 +372,7 @@ func (s *ScaleTeamHandlerSuite) Test10_HandleUpdate_SaveError() {
 	defer recordMock.AssertExpectations(s.T())
 	s.stMock.On("Get", mock.Anything, mock.Anything).Return([]db.ScaleTeam{recordMock}, nil).Once()
 
+	recordMock.On("GetBeginAt").Return(time.Now()).Once()
 	recordMock.On("SetBeginAt", mock.Anything).Return().Once()
 	recordMock.On("SetNotified", false).Return().Once()
 
@@ -353,7 +384,7 @@ func (s *ScaleTeamHandlerSuite) Test10_HandleUpdate_SaveError() {
 	s.Equal(expectedError, err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test11_HandleDestroy() {
+func (s *ScaleTeamHandlerSuite) Test12_HandleDestroy() {
 	expectedID := 21
 
 	payload := []byte(fmt.Sprintf(
@@ -374,7 +405,7 @@ func (s *ScaleTeamHandlerSuite) Test11_HandleDestroy() {
 	s.NoError(err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test12_HandleDestroy_NotInDB() {
+func (s *ScaleTeamHandlerSuite) Test13_HandleDestroy_NotInDB() {
 	expectedID := 21
 
 	payload := []byte(fmt.Sprintf(
@@ -392,7 +423,7 @@ func (s *ScaleTeamHandlerSuite) Test12_HandleDestroy_NotInDB() {
 	s.True(errors.Is(err, NotInDBError))
 }
 
-func (s *ScaleTeamHandlerSuite) Test13_HandleDestroy_PayloadError() {
+func (s *ScaleTeamHandlerSuite) Test14_HandleDestroy_PayloadError() {
 	expectedID := 21
 
 	payload := []byte(fmt.Sprintf(
@@ -404,7 +435,7 @@ func (s *ScaleTeamHandlerSuite) Test13_HandleDestroy_PayloadError() {
 	s.Error(err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test14_HandleDestroy_InvalidJSON() {
+func (s *ScaleTeamHandlerSuite) Test15_HandleDestroy_InvalidJSON() {
 	expectedID := 21
 
 	payload := []byte(fmt.Sprintf(
@@ -416,7 +447,7 @@ func (s *ScaleTeamHandlerSuite) Test14_HandleDestroy_InvalidJSON() {
 	s.Error(err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test15_HandleDestroy_GetError() {
+func (s *ScaleTeamHandlerSuite) Test16_HandleDestroy_GetError() {
 	expectedID := 21
 
 	payload := []byte(fmt.Sprintf(
@@ -435,7 +466,7 @@ func (s *ScaleTeamHandlerSuite) Test15_HandleDestroy_GetError() {
 	s.Equal(expectedError, err)
 }
 
-func (s *ScaleTeamHandlerSuite) Test16_HandleDestroy_DeleteError() {
+func (s *ScaleTeamHandlerSuite) Test17_HandleDestroy_DeleteError() {
 	expectedID := 21
 
 	payload := []byte(fmt.Sprintf(

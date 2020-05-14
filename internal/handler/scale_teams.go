@@ -98,6 +98,11 @@ func (handler *scaleTeamHandler) updateInDB(tx *gorm.DB, st *scaleTeam, logger *
 		return handler.insertInDB(tx, st, logger)
 	}
 
+	if st.BeginAt.Equal(stRecords[0].GetBeginAt()) {
+		logger.Info("scale team's begin_at did not change")
+		return nil
+	}
+
 	logger.Info("updating scale team's record")
 	logger.Debugf("setting begin_at to: %v", st.BeginAt)
 	stRecords[0].SetBeginAt(st.BeginAt)
