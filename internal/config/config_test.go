@@ -78,11 +78,10 @@ func TestInitiate(t *testing.T) {
 		os.Setenv("SLACK_THAT_WORKSPACE", "42born2code")
 		os.Setenv("POSTGRES_PASSWORD", "changeme")
 
-		defer os.Unsetenv("INTRA_APP_ID")
-		defer os.Unsetenv("INTRA_APP_SECRET")
-		defer os.Unsetenv("INTRA_WEBHOOKS")
-		defer os.Unsetenv("SLACK_THAT_WORKSPACE")
-		defer os.Unsetenv("POSTGRES_PASSWORD")
+		// Testing unmarshalling of not required env var fields
+		os.Setenv("POSTGRES_HOST", "testinghost")
+
+		defer os.Clearenv()
 
 		expected := Configuration{
 			Environment: "development",
@@ -118,7 +117,7 @@ func TestInitiate(t *testing.T) {
 				Enabled: false,
 			},
 			Postgres: Database{
-				Host:     "localhost",
+				Host:     "testinghost",
 				Port:     "5432",
 				DB:       "postgres",
 				User:     "postgres",

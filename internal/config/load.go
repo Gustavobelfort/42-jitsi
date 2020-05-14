@@ -77,6 +77,44 @@ func bindEnv() {
 		log.Debugf("bound '%s' to '%s'", env, config)
 	}
 
+	// Workaround until unmarshal is supported for unbound environmental variables
+	// See github issue: https://github.com/spf13/viper/issues/761
+	logBinding("environment", "ENVIRONMENT")
+	logBinding("service", "SERVICE")
+
+	logBinding("email_suffix", "EMAIL_SUFFIX")
+
+	logBinding("warn_before", "WARN_BEFORE")
+
+	logBinding("timeout", "TIMEOUT")
+
+	logBinding("postgres.host", "POSTGRES_HOST")
+	logBinding("postgres.port", "POSTGRES_PORT")
+	logBinding("postgres.db", "POSTGRES_DB")
+	logBinding("postgres.user", "POSTGRES_USER")
+
+	logBinding("slack_that.url", "SLACK_THAT_URL")
+	logBinding("slack_that.username", "SLACK_THAT_USERNAME")
+
+	logBinding("rabbitmq.host", "RABBITMQ_HOST")
+	logBinding("rabbitmq.port", "RABBITMQ_PORT")
+	logBinding("rabbitmq.vhost", "RABBITMQ_VHOST")
+	logBinding("rabbitmq.user", "RABBITMQ_USER")
+	logBinding("rabbitmq.password", "RABBITMQ_PASSWORD")
+	logBinding("rabbitmq.queue", "RABBITMQ_QUEUE")
+
+	logBinding("log_level", "LOG_LEVEL")
+
+	logBinding("logstash.host", "LOGSTASH_HOST")
+	logBinding("logstash.port", "LOGSTASH_PORT")
+	logBinding("logstash.protocol", "LOGSTASH_PROTOCOL")
+	logBinding("logstash.levels", "LOGSTASH_LEVELS")
+	logBinding("logstash.enabled", "LOGSTASH_ENABLED")
+
+	logBinding("sentry.levels", "SENTRY_LEVELS")
+	logBinding("sentry.enabled", "SENTRY_ENABLED")
+	// End workaround
+
 	logBinding("sentry.dsn", "SENTRY_DSN")
 
 	logBinding("postgres.password", "POSTGRES_PASSWORD")
