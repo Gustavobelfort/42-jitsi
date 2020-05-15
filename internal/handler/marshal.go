@@ -2,12 +2,34 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
+
+	"github.com/gustavobelfort/42-jitsi/internal/config"
 )
 
+// customTime will allow us to support unmarshalling time that is not RFC 3339
+type customTime struct {
+	time.Time
+}
+
+var timeLayout string
+
+func (ct *customTime) UnmarshalJSON(d []byte) error {
+	if ct.Time.UnmarshalJSON(d) == nil {
+		return nil
+	}
+	if timeLayout == "" {
+		timeLayout = config.Conf.BeginAtTimeLayout
+	}
+	var err error
+	ct.Time, err = time.Parse(fmt.Sprintf(`"%s"`, timeLayout), string(d))
+	return err
+}
+
 type scaleTeam struct {
-	ID         int       `json:"id"`
-	BeginAt    time.Time `json:"begin_at"`
+	ID         int        `json:"id"`
+	BeginAt    customTime `json:"begin_at"`
 	Corrector  string
 	Correcteds []string
 	TeamID     int
