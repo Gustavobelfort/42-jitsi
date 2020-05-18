@@ -15,12 +15,13 @@ type Configuration struct {
 	Environment string
 	Service     string
 
-	EmailSuffix string          `mapstructure:"email_suffix"`
-	SlackThat   SlackThatConfig `mapstructure:"slack_that"`
-	WarnBefore  time.Duration   `mapstructure:"warn_before"`
-	Intra       Intra
-	Postgres    Database
+	EmailSuffix       string          `mapstructure:"email_suffix"`
+	SlackThat         SlackThatConfig `mapstructure:"slack_that"`
+	WarnBefore        time.Duration   `mapstructure:"warn_before"`
+	BeginAtTimeLayout string          `mapstructure:"begin_at_time_layout"`
 
+	Intra    Intra
+	Postgres Database
 	RabbitMQ RabbitMQ
 
 	Timeout time.Duration

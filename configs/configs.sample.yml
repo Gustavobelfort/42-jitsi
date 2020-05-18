@@ -45,6 +45,7 @@ warn_before: 15m # Time in duration format
 # Consumers configuration
 ##
 timeout: 10s
+begin_at_time_layout: 2006-01-02 15:04:05 UTC
 # -- api consumer configuration
 http_addr: 0.0.0.0:5000
 

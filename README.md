@@ -108,7 +108,7 @@ You can choose which one to deploy with docker-compose by setting the env var `J
 value.
 
 _Common configurations_:
-- General configuration: `TIMEOUT`
+- General configuration: `TIMEOUT`, `BEGIN_AT_TIME_LAYOUT`
 - Logging configuration: `LOG_LEVEL`, `SENTRY_DSN`, `SENTRY_LEVELS`, `SENTRY_ENABLED`, `LOGSTASH_HOST`, `LOGSTASH_PORT`
   `LOGSTASH_PROTOCOL`, `LOGSTASH_LEVELS`, `LOGSTASH_ENABLED`
 - Intranet application: `INTRA_APP_ID`, `INTRA_APP_SECRET`.

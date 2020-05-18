@@ -30,6 +30,8 @@ func setDefaults() {
 
 	viper.SetDefault("email_suffix", "student.42campus.org")
 
+	viper.SetDefault("begin_at_time_layout", "2006-01-02 15:04:05 UTC")
+
 	viper.SetDefault("warn_before", time.Minute*15)
 
 	viper.SetDefault("http_addr", "0.0.0.0:5000")
@@ -83,6 +85,8 @@ func bindEnv() {
 	logBinding("service", "SERVICE")
 
 	logBinding("email_suffix", "EMAIL_SUFFIX")
+
+	logBinding("begin_at_time_layout", "BEGIN_AT_TIME_LAYOUT")
 
 	logBinding("warn_before", "WARN_BEFORE")
 

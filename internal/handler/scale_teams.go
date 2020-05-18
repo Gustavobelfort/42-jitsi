@@ -56,7 +56,7 @@ func (handler *scaleTeamHandler) insertInDB(tx *gorm.DB, st *scaleTeam, logger *
 	defer tx.RollbackUnlessCommitted()
 
 	logger.Info("creating scale team's record")
-	stRecord, err := handler.scaleTeamManager.Create(tx, st.ID, st.BeginAt, false)
+	stRecord, err := handler.scaleTeamManager.Create(tx, st.ID, st.BeginAt.Time, false)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (handler *scaleTeamHandler) updateInDB(tx *gorm.DB, st *scaleTeam, logger *
 
 	logger.Info("updating scale team's record")
 	logger.Debugf("setting begin_at to: %v", st.BeginAt)
-	stRecords[0].SetBeginAt(st.BeginAt)
+	stRecords[0].SetBeginAt(st.BeginAt.Time)
 	logger.Debugf("setting notified to: %v", false)
 	stRecords[0].SetNotified(false)
 	if err := stRecords[0].Save(tx); err != nil {
