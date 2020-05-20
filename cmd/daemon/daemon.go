@@ -19,11 +19,11 @@ import (
 
 func init() {
 	if err := config.Initiate(); err != nil {
-		logrus.Fatalf("could not load configuration: %v", err)
+		logrus.WithError(err).Fatalf("could not load configuration: %v", err)
 	}
 	logging.Initiate()
 	if err := db.Init(); err != nil {
-		logrus.Fatalf("could not connect to the db: %v", err)
+		logrus.WithError(err).Fatalf("could not connect to the db: %v", err)
 	}
 }
 
@@ -31,12 +31,12 @@ func main() {
 
 	iClient, err := intra.NewClient(config.Conf.Intra.AppID, config.Conf.Intra.AppSecret, http.DefaultClient)
 	if err != nil {
-		logrus.Fatalf("could not initiate intra api client: %v", err)
+		logrus.WithError(err).Fatalf("could not initiate intra api client: %v", err)
 	}
 
 	sClient, err := slack.New(iClient, config.Conf.SlackThat.URL)
 	if err != nil {
-		logrus.Fatalf("could not initiate slack_that client: %v", err)
+		logrus.WithError(err).Fatalf("could not initiate slack_that client: %v", err)
 	}
 
 	tHdl := tasks.NewTasksHandler(sClient, db.GlobalDB)
@@ -47,7 +47,7 @@ func main() {
 
 	scheduler, err := scheduler.New([]scheduler.Task{tasks})
 	if err != nil {
-		logrus.Fatalf("could not create scheduler: %v", err)
+		logrus.WithError(err).Fatalf("could not create scheduler: %v", err)
 	}
 
 	waitForShutdown(scheduler)
