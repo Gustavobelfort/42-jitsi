@@ -1,8 +1,6 @@
 package tasks
 
 import (
-	"context"
-
 	"github.com/gustavobelfort/42-jitsi/internal/config"
 	"github.com/gustavobelfort/42-jitsi/internal/db"
 	"github.com/gustavobelfort/42-jitsi/internal/logging"
@@ -35,43 +33,42 @@ func NewTasksHandler(client slack.SlackThat, dbInstance *gorm.DB) TasksHandler {
 }
 
 func (handler *tasksHandler) Notify() {
-	logger := logging.ContextLog(context.Background(), logrus.StandardLogger())
-
-	logger.Info("getting notifiable scale teams")
+	logrus.Debug("getting notifiable scale teams")
 	scaleTeams, err := handler.getNotifiableScaleTeams()
 	if err != nil {
-		logger.Warnf("error getting notifiable scale teams: %v", err)
+		logrus.WithError(err).Errorf("error getting notifiable scale teams: %v", err)
 		return
 	}
 
 	if len(scaleTeams) == 0 {
-		logger.Debugf("no scale teams to be notified")
+		logrus.Debugf("no scale teams to be notified")
 		return
 	}
 
-	logger.Debugf("%d scale teams found to be notified", len(scaleTeams))
+	logrus.Infof("found %d scale teams to notify", len(scaleTeams))
 	for _, scaleTeam := range scaleTeams {
 		scaleTeamID := scaleTeam.GetID()
+		ctxlogger := logrus.WithField("scale_team_id", scaleTeamID)
 
 		logins, err := handler.getScaleTeamUserLogins(scaleTeamID)
 		if err != nil {
-			logger.Warnf("error getting scale team logins: %v", err)
-			return
+			logging.LogError(ctxlogger, err, "getting scale team users' logins")
+			continue
 		}
 
 		err = handler.client.SendNotification(scaleTeamID, logins)
 		if err != nil {
-			logger.WithField("scale team", scaleTeamID).Warnf("error sending notification to the scale team: %v", err)
-			return
+			logging.LogError(ctxlogger, err, "sending notification to the scale team")
+			continue
 		}
 
 		scaleTeam.SetNotified(true)
 		if err := scaleTeam.Save(handler.db); err != nil {
-			logger.Warnf("error updating notified fild of the scale team: %v", err)
-			return
+			logging.LogError(ctxlogger, err, "updating scale team notified field")
+			continue
 		}
+		ctxlogger.Info("successfully notified scale team")
 	}
-	logger.Info("sucessfully notified scale teams")
 }
 
 func (handler *tasksHandler) getScaleTeamUserLogins(scaleTeamID int) ([]string, error) {

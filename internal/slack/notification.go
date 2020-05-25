@@ -4,23 +4,31 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/gustavobelfort/42-jitsi/internal/logging"
+	"github.com/sirupsen/logrus"
 )
 
 // SendNotification sends a notification to multiple users containing a link to a meet.jit.si server
 func (client *ThatClient) SendNotification(scaleTeamID int, logins []string) error {
 
+	logrus.WithField("scale_team_id", scaleTeamID).Info("getting scale team users' emails")
 	userEmails, err := client.getUserEmails(logins)
-
 	roomName := formatRoomName(scaleTeamID, logins)
+	ctxfields := logrus.Fields{
+		"scale_team_id": scaleTeamID,
+		"room_name":     roomName,
+	}
 	if err != nil {
-		return err
+		return logging.WithLog(err, logrus.ErrorLevel, ctxfields)
 	}
 
+	logrus.WithFields(ctxfields).Info("posting message to slack_that")
 	if err := client.postMessage(
 		PostMessageUserEmailsOption(userEmails),
 		PostMessageLinkOption(roomName),
 	); err != nil {
-		return err
+		return logging.WithLog(err, logrus.ErrorLevel, ctxfields)
 	}
 
 	return nil
