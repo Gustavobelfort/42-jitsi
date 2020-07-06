@@ -62,7 +62,7 @@ func (stManager *scaleTeamManager) Get(tx *gorm.DB, options ...GetOption) ([]Sca
 	for i, scaleTeam := range scaleTeams {
 		scaleTeam.scaleTeamManager = stManager
 		scaleTeam.userManager = &userManager{db: stManager.db}
-		returned[i] = &scaleTeam
+		returned[i] = &scaleTeams[i]
 	}
 	return returned, nil
 
