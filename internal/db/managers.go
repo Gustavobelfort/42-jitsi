@@ -59,9 +59,9 @@ func (stManager *scaleTeamManager) Get(tx *gorm.DB, options ...GetOption) ([]Sca
 	}
 
 	returned := make([]ScaleTeam, len(scaleTeams))
-	for i, scaleTeam := range scaleTeams {
-		scaleTeam.scaleTeamManager = stManager
-		scaleTeam.userManager = &userManager{db: stManager.db}
+	for i := range scaleTeams {
+		scaleTeams[i].scaleTeamManager = stManager
+		scaleTeams[i].userManager = &userManager{db: stManager.db}
 		returned[i] = &scaleTeams[i]
 	}
 	return returned, nil

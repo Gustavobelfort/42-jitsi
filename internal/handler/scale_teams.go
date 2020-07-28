@@ -166,5 +166,5 @@ func (handler *scaleTeamHandler) HandleDestroy(ctx context.Context, data []byte)
 		return err
 	}
 
-	return handler.deleteFromDB(handler.db.BeginTx(ctx, &sql.TxOptions{}), int(st["id"].(float64)), logger)
+	return handler.deleteFromDB(handler.db.BeginTx(ctx, &sql.TxOptions{}), int(st["id"].(float64)), logger.WithField("scale_team_id", int(st["id"].(float64))))
 }
