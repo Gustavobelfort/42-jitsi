@@ -38,6 +38,21 @@ func (r *Router) contextMiddleware() gin.HandlerFunc {
 	}
 }
 
+// recoverMiddleware defers a recover function that will log any panic error that occurs and send an internal error
+// signal.
+func (r *Router) recoverMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				ctxlogger := logging.ContextLog(ctx.Request.Context(), logrus.StandardLogger())
+				ctxlogger.WithField("error", err).Errorf("request paniqued: %v", err)
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error.", "details": nil})
+			}
+		}()
+		ctx.Next()
+	}
+}
+
 // validationMiddleware verifies that the request is authenticated and that the model is supported.
 func (r *Router) validationMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -70,6 +85,7 @@ func (r *Router) validationMiddleware() gin.HandlerFunc {
 
 func (r *Router) setupMiddlewares(group *gin.RouterGroup) {
 	group.Use(
+		r.recoverMiddleware(),
 		r.contextMiddleware(),
 		r.validationMiddleware(),
 	)
